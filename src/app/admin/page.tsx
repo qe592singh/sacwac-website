@@ -828,19 +828,19 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
       {/* Top Header Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800/80 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <Logo size="md" />
             <span className="hidden sm:inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               Admin Portal
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+              className="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
@@ -849,10 +849,11 @@ export default function AdminPage() {
             {/* "+ Add YouTube Video" Trigger Button */}
             <button
               onClick={() => setIsAddVideoModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 rounded-xl shadow-md shadow-sky-500/20 transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-2 text-xs font-bold text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 rounded-xl shadow-md shadow-sky-500/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
-              Add YouTube Video
+              <Plus className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Add YouTube Video</span>
+              <span className="sm:hidden">Add Video</span>
             </button>
 
             <Link
@@ -865,7 +866,7 @@ export default function AdminPage() {
 
             <button
               onClick={handleLogout}
-              className="p-2 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors"
+              className="p-2 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors shrink-0"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -875,12 +876,12 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full space-y-4 sm:space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/80 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-fit">
+        <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 bg-slate-200/80 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar scroll-smooth">
           <button
             onClick={() => setActiveTab("videos")}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition-all ${
               activeTab === "videos"
                 ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -892,7 +893,7 @@ export default function AdminPage() {
 
           <button
             onClick={() => setActiveTab("playlists")}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition-all ${
               activeTab === "playlists"
                 ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -904,7 +905,7 @@ export default function AdminPage() {
 
           <button
             onClick={() => setActiveTab("notes")}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition-all ${
               activeTab === "notes"
                 ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -916,7 +917,7 @@ export default function AdminPage() {
 
           <button
             onClick={() => setActiveTab("profile")}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition-all ${
               activeTab === "profile"
                 ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -941,14 +942,14 @@ export default function AdminPage() {
           });
 
           return (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-6 space-y-3.5 sm:space-y-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <VideoIcon className="w-4 h-4 text-sky-500" />
                     All Videos Sequence ({videos.length})
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     Update any video category instantly anytime from the dropdown, or drag &amp; drop rows to rearrange sequence.
                   </p>
                 </div>
@@ -968,7 +969,7 @@ export default function AdminPage() {
               </div>
 
               {/* Quick Filter & Search Bar */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-1 pb-1">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-1 pb-1">
                 <div className="relative flex-1">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
@@ -988,12 +989,12 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <select
                     value={selectedCategoryFilter}
                     onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                    className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                    className="w-full sm:w-auto px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
                   >
                     <option value="all">All Categories ({videos.length})</option>
                     {VIDEO_CATEGORIES.map((cat) => {
@@ -1008,7 +1009,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5 sm:space-y-2">
                 {filteredVideos.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
                     No videos found matching your filter or search criteria.
@@ -1028,7 +1029,7 @@ export default function AdminPage() {
                         onDragOver={(e) => handleDragOver(e, actualIndex)}
                         onDragEnd={handleDragEnd}
                         onDrop={(e) => handleDrop(e, actualIndex)}
-                        className={`p-3 bg-slate-50 dark:bg-slate-950 border rounded-xl flex items-center justify-between gap-4 transition-all select-none ${
+                        className={`p-3 bg-slate-50 dark:bg-slate-950 border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all select-none ${
                           isDragAllowed ? "cursor-move" : ""
                         } ${
                           isDragging
@@ -1038,10 +1039,11 @@ export default function AdminPage() {
                             : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
                         }`}
                       >
-                        <div className={`flex items-center gap-3 min-w-0 flex-1 ${isDragging ? "pointer-events-none" : ""}`}>
-                          {/* Drag Handle Icon */}
+                        {/* Video Info: Thumbnail + Title + Badges */}
+                        <div className={`flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1 ${isDragging ? "pointer-events-none" : ""}`}>
+                          {/* Drag Handle Icon (desktop only) */}
                           <div
-                            className={`text-slate-400 ${
+                            className={`hidden sm:block text-slate-400 ${
                               isDragAllowed ? "hover:text-sky-500 cursor-grab active:cursor-grabbing" : "opacity-30 cursor-not-allowed"
                             }`}
                             title={isDragAllowed ? "Drag to reorder" : "Clear search/filter to reorder"}
@@ -1050,92 +1052,105 @@ export default function AdminPage() {
                           </div>
 
                           {/* Sequential Index */}
-                          <span className="w-7 text-center text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
+                          <span className="w-6 sm:w-7 text-center text-xs font-mono font-bold text-slate-400 dark:text-slate-500 shrink-0 pt-0.5 sm:pt-0">
                             #{actualIndex + 1}
                           </span>
 
-                          <img
-                            src={vid.thumbnailUrl}
-                            alt={vid.title}
-                            draggable={false}
-                            className="w-16 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-slate-800 select-none"
-                          />
+                          {/* Thumbnail with duration overlay on mobile */}
+                          <div className="relative shrink-0">
+                            <img
+                              src={vid.thumbnailUrl}
+                              alt={vid.title}
+                              draggable={false}
+                              className="w-16 h-11 sm:w-16 sm:h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-slate-800 select-none shadow-sm"
+                            />
+                            <span className="sm:hidden absolute bottom-0.5 right-0.5 text-[9px] font-mono px-1 rounded bg-black/80 text-white font-semibold">
+                              {vid.duration}
+                            </span>
+                          </div>
 
-                          <div className="min-w-0 space-y-1 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
+                          <div className="min-w-0 space-y-1.5 sm:space-y-1 flex-1">
+                            <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-2 sm:truncate leading-snug">
+                              {vid.title}
+                            </h4>
+
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                               {/* Category Badge */}
-                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                              <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                                 {vid.category}
                               </span>
 
                               {vid.episode !== undefined && (
-                                <span className="text-[11px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20">
+                                <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20">
                                   Ep {vid.episode}
                                 </span>
                               )}
 
                               {vid.hasNotes ? (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 flex items-center gap-1">
+                                <span className="text-[10px] px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 flex items-center gap-1">
                                   <FileText className="w-2.5 h-2.5" /> Notes
                                 </span>
                               ) : (
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                <span className="text-[10px] px-1.5 sm:px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-400">
                                   No Notes
                                 </span>
                               )}
 
-                              <span className="text-[11px] text-slate-500 font-mono">
+                              <span className="hidden sm:inline-block text-[11px] text-slate-500 font-mono">
                                 {vid.duration}
                               </span>
                             </div>
-                            <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">
-                              {vid.title}
-                            </h4>
                           </div>
                         </div>
 
-                        {/* Actions: Edit, Move Up / Down & Delete */}
-                        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        {/* Actions Toolbar: Full width with dedicated buttons on mobile, compact horizontal on desktop */}
+                        <div 
+                          className="flex items-center justify-between sm:justify-end gap-1.5 pt-2 sm:pt-0 border-t border-slate-200/70 dark:border-slate-800/70 sm:border-t-0 w-full sm:w-auto shrink-0" 
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             onClick={() => handleOpenEditVideo(vid)}
-                            className="px-2.5 py-1.5 text-sky-600 dark:text-sky-400 hover:text-white hover:bg-sky-500 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold border border-sky-500/30 shadow-sm"
+                            className="flex-1 sm:flex-initial px-3 py-1.5 text-sky-600 dark:text-sky-400 hover:text-white hover:bg-sky-500 bg-sky-500/10 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold border border-sky-500/30 shadow-sm"
                             title="Edit video & attach notes"
                           >
                             <Pencil className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Edit</span>
+                            <span>Edit</span>
                           </button>
-                          <button
-                            onClick={() => moveVideo(actualIndex, "up")}
-                            disabled={actualIndex === 0}
-                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-20 rounded-lg transition-colors"
-                            title="Move up"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => moveVideo(actualIndex, "down")}
-                            disabled={actualIndex === videos.length - 1}
-                            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-20 rounded-lg transition-colors"
-                            title="Move down"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                          <a
-                            href={vid.youtubeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg"
-                            title="Open on YouTube"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                          <button
-                            onClick={() => handleDeleteVideo(vid.id)}
-                            className="p-1.5 text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => moveVideo(actualIndex, "up")}
+                              disabled={actualIndex === 0}
+                              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-20 rounded-lg transition-colors"
+                              title="Move up"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => moveVideo(actualIndex, "down")}
+                              disabled={actualIndex === videos.length - 1}
+                              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-20 rounded-lg transition-colors"
+                              title="Move down"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </button>
+                            <a
+                              href={vid.youtubeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              title="Open on YouTube"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                            <button
+                              onClick={() => handleDeleteVideo(vid.id)}
+                              className="p-1.5 text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -1280,7 +1295,7 @@ export default function AdminPage() {
                         onDragOver={(e) => handlePlDragOver(e, vIdx)}
                         onDragEnd={handlePlDragEnd}
                         onDrop={(e) => handlePlDrop(e, vIdx, activePlaylistData.id)}
-                        className={`p-3 bg-slate-50 dark:bg-slate-950 border rounded-xl flex items-center justify-between gap-4 transition-all cursor-move select-none ${
+                        className={`p-2.5 sm:p-3 bg-slate-50 dark:bg-slate-950 border rounded-xl flex items-center justify-between gap-2.5 sm:gap-4 transition-all cursor-move select-none ${
                           isDragging
                             ? "opacity-30 border-sky-500 scale-[0.99]"
                             : isOver
@@ -1288,13 +1303,13 @@ export default function AdminPage() {
                             : "border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
                         }`}
                       >
-                        <div className={`flex items-center gap-3 min-w-0 flex-1 ${isDragging ? "pointer-events-none" : ""}`}>
-                          {/* Drag Handle */}
-                          <div className="text-slate-400 hover:text-sky-500 cursor-grab active:cursor-grabbing">
+                        <div className={`flex items-center gap-2 sm:gap-3 min-w-0 flex-1 ${isDragging ? "pointer-events-none" : ""}`}>
+                          {/* Drag Handle (desktop only) */}
+                          <div className="hidden sm:block text-slate-400 hover:text-sky-500 cursor-grab active:cursor-grabbing">
                             <GripVertical className="w-4 h-4" />
                           </div>
 
-                          <span className="w-6 text-center text-xs font-mono font-bold text-slate-400">
+                          <span className="w-5 sm:w-6 text-center text-xs font-mono font-bold text-slate-400 shrink-0">
                             #{vIdx + 1}
                           </span>
 
@@ -1304,7 +1319,7 @@ export default function AdminPage() {
                                 src={vidObj.thumbnailUrl}
                                 alt={vidObj.title}
                                 draggable={false}
-                                className="w-14 h-9 object-cover rounded-md border border-slate-200 dark:border-slate-800 shrink-0"
+                                className="w-12 h-8 sm:w-14 sm:h-9 object-cover rounded-md border border-slate-200 dark:border-slate-800 shrink-0"
                               />
                               <div className="min-w-0 flex-1">
                                 <h5 className="text-xs font-semibold text-slate-900 dark:text-white truncate">
@@ -1737,8 +1752,8 @@ export default function AdminPage() {
 
       {/* ================= MODAL: ADD YOUTUBE VIDEO ================= */}
       {isAddVideoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-sky-500/10 border border-sky-500/20 rounded-xl text-sky-600 dark:text-sky-400">
@@ -2002,8 +2017,8 @@ export default function AdminPage() {
 
       {/* ================= MODAL: EDIT VIDEO & MANAGE NOTES ================= */}
       {editingVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-sky-500/10 border border-sky-500/20 rounded-xl text-sky-600 dark:text-sky-400">
