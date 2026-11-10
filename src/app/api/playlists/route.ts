@@ -9,7 +9,18 @@ import { Playlist } from "@/types";
 
 const playlistsFilePath = path.join(process.cwd(), "src", "data", "playlists.json");
 
+let cachedPlaylistsData: { data: unknown; time: number } | null = null;
+const CACHE_TTL_MS = 30 * 1000;
+
 export async function GET() {
+  if (cachedPlaylistsData && Date.now() - cachedPlaylistsData.time < CACHE_TTL_MS) {
+    return NextResponse.json(cachedPlaylistsData.data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+      },
+    });
+  }
+
   try {
     await connectToDatabase();
     const dbPlaylists = await PlaylistModel.find()
@@ -33,7 +44,13 @@ export async function GET() {
         videoIds: p.videoIds || [],
         videos: p.videos || [],
       }));
-      return NextResponse.json({ success: true, playlists: formatted, source: "mongodb" });
+      const payload = { success: true, playlists: formatted, source: "mongodb" };
+      cachedPlaylistsData = { data: payload, time: Date.now() };
+      return NextResponse.json(payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        },
+      });
     }
   } catch (err) {
     console.error("MongoDB GET playlists error, falling back to JSON:", err);
@@ -53,10 +70,17 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json({ success: true, playlists: enriched, source: "local" });
+  const localPayload = { success: true, playlists: enriched, source: "local" };
+  cachedPlaylistsData = { data: localPayload, time: Date.now() };
+  return NextResponse.json(localPayload, {
+    headers: {
+      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+    },
+  });
 }
 
 export async function POST(request: Request) {
+  cachedPlaylistsData = null;
   try {
     const body = await request.json();
     const { title, description, category, level, thumbnail } = body;
@@ -108,6 +132,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  cachedPlaylistsData = null;
   try {
     const body = await request.json();
     const { playlistId, videoIds } = body;
@@ -163,6 +188,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  cachedPlaylistsData = null;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

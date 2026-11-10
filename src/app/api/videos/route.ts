@@ -6,22 +6,46 @@ import { getStoredVideos, saveStoredVideos, getStoredNotes, saveStoredNotes } fr
 import { extractYoutubeId, getYoutubeThumbnail } from "@/lib/youtube";
 import { Video, NoteDoc } from "@/types";
 
+let cachedVideosData: { data: unknown; time: number } | null = null;
+const CACHE_TTL_MS = 30 * 1000;
+
 export async function GET() {
+  if (cachedVideosData && Date.now() - cachedVideosData.time < CACHE_TTL_MS) {
+    return NextResponse.json(cachedVideosData.data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+      },
+    });
+  }
+
   try {
     await connectToDatabase();
     const dbVideos = await VideoModel.find().sort({ order: 1, createdAt: -1 }).lean();
     if (dbVideos && dbVideos.length > 0) {
-      return NextResponse.json({ success: true, videos: dbVideos, source: "mongodb" });
+      const payload = { success: true, videos: dbVideos, source: "mongodb" };
+      cachedVideosData = { data: payload, time: Date.now() };
+      return NextResponse.json(payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        },
+      });
     }
   } catch (err) {
     console.error("MongoDB GET videos error, falling back to JSON:", err);
   }
 
   const videos = getStoredVideos();
-  return NextResponse.json({ success: true, videos, source: "local" });
+  const localPayload = { success: true, videos, source: "local" };
+  cachedVideosData = { data: localPayload, time: Date.now() };
+  return NextResponse.json(localPayload, {
+    headers: {
+      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+    },
+  });
 }
 
 export async function POST(request: Request) {
+  cachedVideosData = null;
   try {
     const body = await request.json();
     const {
@@ -168,6 +192,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  cachedVideosData = null;
   try {
     const body = await request.json();
     const {
@@ -354,6 +379,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  cachedVideosData = null;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

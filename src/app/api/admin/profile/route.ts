@@ -6,12 +6,29 @@ import { ProfileModel } from "@/models/Profile";
 
 const profilePath = path.join(process.cwd(), "src", "data", "profile.json");
 
+let cachedProfileData: { data: unknown; time: number } | null = null;
+const CACHE_TTL_MS = 60 * 1000;
+
 export async function GET() {
+  if (cachedProfileData && Date.now() - cachedProfileData.time < CACHE_TTL_MS) {
+    return NextResponse.json(cachedProfileData.data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    });
+  }
+
   try {
     await connectToDatabase();
     const dbProfile = await ProfileModel.findOne().lean();
     if (dbProfile) {
-      return NextResponse.json({ success: true, profile: dbProfile, source: "mongodb" });
+      const payload = { success: true, profile: dbProfile, source: "mongodb" };
+      cachedProfileData = { data: payload, time: Date.now() };
+      return NextResponse.json(payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      });
     }
   } catch (err) {
     console.error("MongoDB GET profile error, falling back to JSON:", err);
@@ -22,7 +39,13 @@ export async function GET() {
       return NextResponse.json({ success: true, profile: {} });
     }
     const data = JSON.parse(fs.readFileSync(profilePath, "utf8"));
-    return NextResponse.json({ success: true, profile: data, source: "local" });
+    const localPayload = { success: true, profile: data, source: "local" };
+    cachedProfileData = { data: localPayload, time: Date.now() };
+    return NextResponse.json(localPayload, {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    });
   } catch (error) {
     console.error("Error reading profile:", error);
     return NextResponse.json({ success: false, error: "Failed to read profile" }, { status: 500 });
@@ -30,6 +53,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  cachedProfileData = null;
   try {
     const body = await request.json();
     const { name, title, bio, avatarUrl, youtubeUrl, linkedinUrl, email, workEmail, topmateUrl } = body;

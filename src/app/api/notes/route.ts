@@ -4,22 +4,46 @@ import { NoteModel } from "@/models/Note";
 import { getStoredNotes, saveStoredNotes } from "@/lib/storage";
 import { NoteDoc } from "@/types";
 
+let cachedNotesData: { data: unknown; time: number } | null = null;
+const CACHE_TTL_MS = 30 * 1000;
+
 export async function GET() {
+  if (cachedNotesData && Date.now() - cachedNotesData.time < CACHE_TTL_MS) {
+    return NextResponse.json(cachedNotesData.data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+      },
+    });
+  }
+
   try {
     await connectToDatabase();
     const dbNotes = await NoteModel.find().sort({ order: 1, createdAt: -1 }).lean();
     if (dbNotes && dbNotes.length > 0) {
-      return NextResponse.json({ success: true, notes: dbNotes, source: "mongodb" });
+      const payload = { success: true, notes: dbNotes, source: "mongodb" };
+      cachedNotesData = { data: payload, time: Date.now() };
+      return NextResponse.json(payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        },
+      });
     }
   } catch (err) {
     console.error("MongoDB GET notes error, falling back to JSON:", err);
   }
 
   const notes = getStoredNotes();
-  return NextResponse.json({ success: true, notes, source: "local" });
+  const localPayload = { success: true, notes, source: "local" };
+  cachedNotesData = { data: localPayload, time: Date.now() };
+  return NextResponse.json(localPayload, {
+    headers: {
+      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+    },
+  });
 }
 
 export async function POST(request: Request) {
+  cachedNotesData = null;
   try {
     const body = await request.json();
     const { title, category, summary, readTime, badge, difficulty, sections, pdfUrl, isFeatured, episode, videoId } = body;
@@ -83,6 +107,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  cachedNotesData = null;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
