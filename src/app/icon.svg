@@ -1,0 +1,308 @@
+<svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Radial -->
+    <radialGradient id="sacwacBg" cx="50%" cy="50%" r="50%" fx="40%" fy="30%">
+      <stop offset="0%" stopColor="#0f172a" />
+      <stop offset="65%" stopColor="#090d16" />
+      <stop offset="100%" stopColor="#020617" />
+    </radialGradient>
+
+    <!-- Outer Ring Gradient (Electric Blue / Sky Blue) -->
+    <linearGradient id="blueRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#38bdf8" />
+      <stop offset="35%" stopColor="#0284c7" />
+      <stop offset="70%" stopColor="#0ea5e9" />
+      <stop offset="100%" stopColor="#38bdf8" />
+    </linearGradient>
+
+    <!-- WAC Text Gradient -->
+    <linearGradient id="wacGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#7dd3fc" />
+      <stop offset="40%" stopColor="#38bdf8" />
+      <stop offset="85%" stopColor="#0284c7" />
+      <stop offset="100%" stopColor="#0369a1" />
+    </linearGradient>
+
+    <!-- Ribbon Gradient -->
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#0369a1" />
+      <stop offset="50%" stopColor="#0284c7" />
+      <stop offset="100%" stopColor="#0369a1" />
+    </linearGradient>
+
+    <!-- Cloud Fill Gradient -->
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.25" />
+      <stop offset="100%" stopColor="#0284c7" stopOpacity="0.05" />
+    </linearGradient>
+
+    <!-- Flare Gradient -->
+    <radialGradient id="flareGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+      <stop offset="30%" stopColor="#38bdf8" stopOpacity="0.8" />
+      <stop offset="70%" stopColor="#0284c7" stopOpacity="0.3" />
+      <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
+    </radialGradient>
+
+    <!-- Blue Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <!-- Outer Ambient Glow -->
+  <circle cx="250" cy="250" r="236" stroke="#38bdf8" stroke-width="4" opacity="0.35" filter="url(#neonGlow)" />
+
+  <!-- Outer Double Beveled Blue Ring -->
+  <circle cx="250" cy="250" r="238" stroke="url(#blueRing)" stroke-width="8" />
+  <circle cx="250" cy="250" r="226" stroke="#0369a1" stroke-width="2" opacity="0.8" />
+  <circle cx="250" cy="250" r="222" stroke="#38bdf8" stroke-width="1.5" opacity="0.4" stroke-dasharray="6 4" />
+
+  <!-- Main Dark Badge Surface -->
+  <circle cx="250" cy="250" r="220" fill="url(#sacwacBg)" />
+
+  <!-- Subtle Radial Grid Texture -->
+  <circle cx="250" cy="250" r="185" stroke="#38bdf8" stroke-width="0.8" opacity="0.12" />
+  <circle cx="250" cy="250" r="145" stroke="#38bdf8" stroke-width="0.8" opacity="0.08" />
+
+  <!-- ================= TOP: CLOUD & PLAY BUTTON ================= -->
+  <g transform="translate(0, 5)" filter="url(#softGlow)">
+    <!-- Cloud Outline -->
+    <path
+      d="M 282 82 C 298 82 312 94 313 110 C 326 112 336 123 336 137 C 336 152 324 164 309 164 L 191 164 C 176 164 164 152 164 137 C 164 124 173 113 186 110 C 187 93 201 80 218 80 C 225 80 231 82 237 86 C 247 72 267 72 278 81 C 280 81 281 82 282 82 Z"
+      fill="url(#cloudGrad)"
+      stroke="url(#blueRing)"
+      stroke-width="5.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+
+    <!-- Cloud Accent Inner Line -->
+    <path
+      d="M 196 156 L 304 156"
+      stroke="#38bdf8"
+      stroke-width="2"
+      opacity="0.4"
+      stroke-linecap="round"
+    />
+
+    <!-- Play Button Triangle inside Cloud -->
+    <polygon
+      points="241,107 269,124 241,141"
+      fill="url(#blueRing)"
+      filter="url(#neonGlow)"
+    />
+  </g>
+
+  <!-- ================= CENTER: STYLIZED SACWAC TYPOGRAPHY ================= -->
+  <!-- Underline Slash / Energy Beam -->
+  <g filter="url(#neonGlow)">
+    <path
+      d="M 85 285 Q 240 288 415 258 Q 245 298 85 285 Z"
+      fill="url(#blueRing)"
+    />
+  </g>
+  <!-- Central Flare / Lens Flare Sparkle -->
+  <ellipse cx="270" cy="285" rx="36" ry="12" fill="url(#flareGrad)" />
+  <circle cx="270" cy="285" r="4.5" fill="#ffffff" />
+
+  <!-- Typography: SACWAC -->
+  <g filter="url(#textShadow)">
+    <!-- SAC in Crisp Textured White -->
+    <text
+      x="78"
+      y="262"
+      font-family="system-ui, -apple-system, 'Impact', 'Montserrat', sans-serif"
+      font-size="94"
+      font-weight="900"
+      font-style="italic"
+      letter-spacing="-2px"
+      fill="#ffffff"
+    >
+      SAC
+    </text>
+
+    <!-- WAC in Vibrant Electric Blue -->
+    <text
+      x="256"
+      y="262"
+      font-family="system-ui, -apple-system, 'Impact', 'Montserrat', sans-serif"
+      font-size="94"
+      font-weight="900"
+      font-style="italic"
+      letter-spacing="-2px"
+      fill="url(#wacGrad)"
+    >
+      WAC
+    </text>
+
+    <!-- Brush Slash Strokes over WAC for stylized energy -->
+    <path
+      d="M 405 190 L 425 212 L 400 248 Z"
+      fill="#38bdf8"
+      opacity="0.75"
+    />
+    <path
+      d="M 268 200 L 274 212 L 264 220 Z"
+      fill="#7dd3fc"
+      opacity="0.6"
+    />
+  </g>
+
+  <!-- ================= PILLARS: 4 ICONS & LABELS ================= -->
+  <g transform="translate(0, 308)">
+    <!-- Column 1: Salesforce Cloud -->
+    <g transform="translate(108, 0)">
+      <!-- Cloud Glyph -->
+      <path
+        d="M 18 10 C 22 10 25 13 25 17 C 28 17 30 19 30 22 C 30 25 28 27 25 27 L 7 27 C 4 27 2 25 2 22 C 2 20 4 18 6 18 C 6 15 9 13 13 13 C 14 13 16 14 17 14 C 18 12 20 10 22 10 Z"
+        fill="#38bdf8"
+        transform="translate(-16, -18)"
+      />
+      <text
+        x="0"
+        y="26"
+        text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="10"
+        font-weight="800"
+        letter-spacing="0.8px"
+        fill="#e2e8f0"
+      >
+        SALESFORCE
+      </text>
+    </g>
+
+    <!-- Divider 1 -->
+    <line x1="162" y1="-8" x2="162" y2="28" stroke="#0284c7" stroke-width="1.8" opacity="0.7" />
+
+    <!-- Column 2: Tech Code Brackets </> -->
+    <g transform="translate(202, 0)">
+      <!-- Code Brackets Glyph -->
+      <g stroke="#38bdf8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <polyline points="-12,-8 -17,-2 -12,4" />
+        <line x1="-3" y1="-10" x2="3" y2="6" />
+        <polyline points="12,-8 17,-2 12,4" />
+      </g>
+      <text
+        x="0"
+        y="26"
+        text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="10"
+        font-weight="800"
+        letter-spacing="1px"
+        fill="#e2e8f0"
+      >
+        TECH
+      </text>
+    </g>
+
+    <!-- Divider 2 -->
+    <line x1="242" y1="-8" x2="242" y2="28" stroke="#0284c7" stroke-width="1.8" opacity="0.7" />
+
+    <!-- Column 3: Learn Graduation Cap -->
+    <g transform="translate(282, 0)">
+      <!-- Grad Cap Glyph -->
+      <g fill="#38bdf8">
+        <polygon points="0,-12 17,-4 0,4 -17,-4" />
+        <path d="M -11 0 L -11 8 C -11 12 11 12 11 8 L 11 0 Z" opacity="0.85" />
+        <line x1="13" y1="-2" x2="15" y2="9" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" />
+      </g>
+      <text
+        x="0"
+        y="26"
+        text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="10"
+        font-weight="800"
+        letter-spacing="1px"
+        fill="#e2e8f0"
+      >
+        LEARN
+      </text>
+    </g>
+
+    <!-- Divider 3 -->
+    <line x1="322" y1="-8" x2="322" y2="28" stroke="#0284c7" stroke-width="1.8" opacity="0.7" />
+
+    <!-- Column 4: Grow Bar Chart -->
+    <g transform="translate(362, 0)">
+      <!-- Chart Glyph -->
+      <g fill="#38bdf8">
+        <rect x="-14" y="-1" width="5" height="10" rx="1" />
+        <rect x="-6" y="-6" width="5" height="15" rx="1" />
+        <rect x="2" y="-11" width="5" height="20" rx="1" />
+        <!-- Trend Arrow -->
+        <polyline points="-12,-7 0,-13 11,-15" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" />
+        <polygon points="12,-17 12,-11 7,-14" fill="#7dd3fc" />
+      </g>
+      <text
+        x="0"
+        y="26"
+        text-anchor="middle"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="10"
+        font-weight="800"
+        letter-spacing="1px"
+        fill="#e2e8f0"
+      >
+        GROW
+      </text>
+    </g>
+  </g>
+
+  <!-- ================= BOTTOM: RIBBON BANNER ================= -->
+  <g transform="translate(250, 412)">
+    <!-- Ribbon Shadow -->
+    <path
+      d="M -135 -14 L 135 -14 L 152 2 L 135 18 L -135 18 L -152 2 Z"
+      fill="#020617"
+      opacity="0.7"
+      transform="translate(0, 3)"
+    />
+
+    <!-- Ribbon Main Body -->
+    <path
+      d="M -135 -14 L 135 -14 L 150 2 L 135 18 L -135 18 L -150 2 Z"
+      fill="url(#ribbonGrad)"
+      stroke="#38bdf8"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+    />
+
+    <!-- Ribbon Accent Borders -->
+    <line x1="-125" y1="-10" x2="125" y2="-10" stroke="#7dd3fc" stroke-width="1" opacity="0.5" />
+    <line x1="-125" y1="14" x2="125" y2="14" stroke="#0c4a6e" stroke-width="1" />
+
+    <!-- Ribbon Text -->
+    <text
+      x="0"
+      y="6"
+      text-anchor="middle"
+      font-family="system-ui, -apple-system, sans-serif"
+      font-size="13"
+      font-weight="900"
+      letter-spacing="3px"
+      fill="#ffffff"
+    >
+      LEARN • BUILD • GROW
+    </text>
+  </g>
+</svg>

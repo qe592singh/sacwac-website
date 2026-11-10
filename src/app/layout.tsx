@@ -18,8 +18,13 @@ export const metadata: Metadata = {
   description:
     "Official website for SacWac YouTube Channel. Practical Salesforce tutorials, architecture breakdowns, scenario-based learning, and protected online notes by Sachin Singh.",
   icons: {
-    icon: "/images/sacwac-blue-badge.png",
-    apple: "/images/sacwac-blue-badge.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/apple-icon.png",
+    shortcut: "/favicon.ico",
   },
   keywords: [
     "Salesforce",
