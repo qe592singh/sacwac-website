@@ -1,0 +1,1834 @@
+[
+  {
+    "id": "admin-episode-1",
+    "title": "Introduction to CRM, Cloud Computing & Salesforce Multi-Tenant Architecture",
+    "category": "Admin",
+    "summary": "Complete breakdown of Cloud Computing models (IaaS, PaaS, SaaS), Salesforce multi-tenancy runtime architecture, metadata-driven platform layers, and the core CRM ecosystem.",
+    "readTime": "12 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 1",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. What is CRM and Cloud Computing Architecture?",
+        "content": "Customer Relationship Management (CRM) is a strategic enterprise platform designed to manage and optimize all organizational interactions with current and potential customers across marketing, sales, commerce, and service.\n\nCloud Computing delivers computing services (servers, storage, databases, networking, software) over the Internet ('the cloud') with flexible resources and economies of scale:\n• IaaS (Infrastructure as a Service): Raw compute/storage (e.g., AWS EC2, Google Compute Engine).\n• PaaS (Platform as a Service): Hardware and software development tools hosted on the cloud (e.g., Salesforce Lightning Platform, Heroku).\n• SaaS (Software as a Service): Complete, vendor-managed application delivered via web browser (e.g., Salesforce Sales Cloud, Gmail).",
+        "keyTakeaways": [
+          "Salesforce is both SaaS (ready-to-use apps) and PaaS (custom objects, automation, Apex).",
+          "Multi-tenant architecture means multiple customers share shared database infrastructure securely partitioned by Org IDs."
+        ]
+      },
+      {
+        "heading": "2. Salesforce Multi-Tenancy & The Metadata-Driven Model",
+        "content": "In Salesforce's multi-tenant architecture, all customers share the exact same hardware, runtime execution engine, and database schema, yet each tenant's data and custom code are completely isolated.\n\nEvery custom field, custom object, page layout, and validation rule created by an administrator is stored not as physical database table definitions, but as METADATA. At runtime, the Salesforce Universal Data Dictionary combines system metadata, tenant custom metadata, and data rows into virtual views on the fly.",
+        "codeSnippet": "// Concept: How Salesforce separates Tenant Data from Platform Core\nSELECT OrgId, UserId, EntityDefinition.DeveloperName, FieldDefinition.QualifiedApiName\nFROM CustomField\nWHERE EntityDefinition.DeveloperName = 'Invoice__c'",
+        "language": "sql",
+        "keyTakeaways": [
+          "Metadata defines the structure; Data defines the records.",
+          "Governor limits exist directly because of multi-tenancy to ensure no single tenant monopolizes shared CPU or DB resources."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_1_notes.pdf",
+    "isFeatured": true,
+    "order": 1,
+    "episode": 1,
+    "videoId": "vid-MVtFaHgvXnU"
+  },
+  {
+    "id": "admin-episode-2",
+    "title": "Salesforce Objects: Standard vs. Custom Objects & Object Manager Mastery",
+    "category": "Admin",
+    "summary": "Deep dive into database tables in Salesforce: Standard Objects (Account, Contact, Lead, Opportunity), Custom Objects (__c), System Audit Fields, and Object Manager navigation.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 2",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Salesforce Objects as Relational Database Tables",
+        "content": "An Object in Salesforce is the equivalent of a table in a relational database. It represents a specific business entity (such as Companies, People, Support Cases, or custom entities like Project or Invoices).\n\n• Standard Objects: Built-in objects provided out-of-the-box by Salesforce to support core business processes (e.g., Lead, Account, Contact, Opportunity, Case).\n• Custom Objects: Created by administrators or developers to store information unique to an organization's specific business needs. Every custom object API name ends with '__c'.",
+        "keyTakeaways": [
+          "Standard objects cannot be deleted and their API names do not end with '__c'.",
+          "Custom objects automatically generate system audit fields upon creation."
+        ]
+      },
+      {
+        "heading": "2. System Audit Fields & Object Manager Capabilities",
+        "content": "Whenever any object is created in Salesforce, the platform automatically generates 4 un-editable System Audit Fields:\n1. CreatedById (User who created the record)\n2. CreatedDate (Timestamp of creation)\n3. LastModifiedById (User who last edited)\n4. LastModifiedDate (Timestamp of last modification)\n\nAdditionally, standard objects and custom objects feature 'OwnerId' for record-level ownership unless controlled by a Master-Detail parent.",
+        "codeSnippet": "// SOQL Query Demonstrating Object Query with Standard Audit Fields\nSELECT Id, Name, CreatedDate, CreatedBy.Name, LastModifiedDate\nFROM Project__c\nORDER BY CreatedDate DESC LIMIT 10",
+        "language": "sql",
+        "keyTakeaways": [
+          "Audit fields cannot be manually updated except during data migrations with special permissions ('Set Audit Fields on Record Creation').",
+          "Object Manager allows configuring Fields, Page Layouts, Lightning Record Pages, Buttons, and Validation Rules in one consolidated place."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_2_notes.pdf",
+    "isFeatured": true,
+    "order": 2,
+    "episode": 2,
+    "videoId": "vid-oCJvhLQfMkY"
+  },
+  {
+    "id": "admin-episode-3",
+    "title": "Salesforce Fields & Data Types: Field Architecture, Attributes & System Fields",
+    "category": "Admin",
+    "summary": "Comprehensive guide to standard and custom fields, data types (Text, Number, Currency, Date/Time, Checkbox, Auto-Number), field attributes (Unique, External ID), and storage considerations.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 3",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Standard vs. Custom Fields Architecture",
+        "content": "Fields are the columns of a Salesforce object table. They hold the actual data values for individual records.\n\n• Standard Fields: Pre-built on standard objects (e.g., Account Name, Phone, Annual Revenue). While standard fields cannot be deleted or converted to custom types, their labels can often be renamed.\n• Custom Fields: Created by administrators on either standard or custom objects. Custom fields always end with the '__c' suffix in their API Name. Custom fields can be deleted (moved to Deleted Fields recycle bin for 15 days before permanent hard purge).",
+        "keyTakeaways": [
+          "Custom field API names always end with '__c' (e.g., Tax_Id__c).",
+          "Changing field types in production can cause permanent data truncation; always backup data before type modifications."
+        ]
+      },
+      {
+        "heading": "2. Essential Data Types & Field Attributes",
+        "content": "Salesforce provides specialized data types designed for enterprise business workflows:\n• Auto-Number: Formatted alphanumeric sequence generated automatically (e.g., INV-{0000}).\n• Checkbox: True/False binary flag.\n• Currency: Numeric value formatted according to the user's or org's corporate currency.\n• Date vs Date/Time: Date stores date only; Date/Time stores UTC timestamp converted to user's localized timezone.\n• External ID: Marks a custom field as a unique record identifier from an external system (e.g., SAP, NetSuite, Oracle) to enable efficient upsert operations without prior Salesforce record IDs.\n• Unique: Prevents duplicate values across records (can be case-sensitive or case-insensitive).",
+        "codeSnippet": "// Formula Example: Calculating Days Overdue\nTODAY() - Due_Date__c",
+        "language": "sql",
+        "keyTakeaways": [
+          "You can have up to 25 External ID fields per custom object.",
+          "Text fields marked as External ID are automatically indexed in the Salesforce database for rapid SOQL performance."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_3_notes.pdf",
+    "isFeatured": true,
+    "order": 3,
+    "episode": 3,
+    "videoId": "vid-UxYuUqRAiAM"
+  },
+  {
+    "id": "admin-episode-4",
+    "title": "Picklist Fields in Salesforce: Standard, Multi-Select, Global Value Sets & Dependencies",
+    "category": "Admin",
+    "summary": "Mastering Single-Select, Multi-Select Picklists, Global Value Sets for org-wide data integrity, and Controlling vs. Dependent Picklist matrix configurations.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 4",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Picklist Architecture: Standard vs. Custom vs. Global Value Sets",
+        "content": "A Picklist field provides users with a standardized menu of predefined options to ensure data consistency, eliminate spelling errors, and simplify reporting.\n\n• Custom Picklist: Values defined locally on a single object.\n• Global Value Set: A centralized, reusable set of picklist values that can be shared across multiple custom picklist fields on different objects. When you update or deactivate a value in a Global Value Set, the change immediately reflects across every field referencing that set.\n• Multi-Select Picklist: Allows users to choose one or more values. Values are stored in the database as a single semicolon-delimited string (e.g., 'Alpha;Beta;Gamma').",
+        "keyTakeaways": [
+          "Avoid multi-select picklists for primary reporting keys; they cannot be easily grouped or used in standard mathematical summaries.",
+          "Use Global Value Sets whenever the same lookup options (e.g., Region, Industry, Tier) are needed across multiple objects."
+        ]
+      },
+      {
+        "heading": "2. Field Dependencies (Controlling vs. Dependent)",
+        "content": "Field dependencies allow administrators to filter the available options in a dependent picklist based on the value selected in a controlling field.\n\nSupported Controlling Fields:\n• Standard & Custom Single-Select Picklists\n• Checkbox fields (Checked = True, Unchecked = False)\n\nSupported Dependent Fields:\n• Custom Single-Select Picklists\n• Custom Multi-Select Picklists\n\n*Important:* Standard Picklist fields CANNOT be dependent fields; they can only act as controlling fields.",
+        "codeSnippet": "// Example Dependency Matrix:\n// Controlling: Country__c (USA, India, UK)\n// Dependent: State_Province__c\n// If Country = 'USA' -> [California, Texas, New York]\n// If Country = 'India' -> [Maharashtra, Karnataka, Delhi]",
+        "language": "text",
+        "keyTakeaways": [
+          "Standard picklists cannot be dependent fields.",
+          "Multi-select picklists cannot be controlling fields."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_4_notes.pdf",
+    "isFeatured": true,
+    "order": 4,
+    "episode": 4,
+    "videoId": "vid-unv2LusI9mc"
+  },
+  {
+    "id": "admin-episode-5",
+    "title": "Formula Fields in Salesforce: Syntax, Functions, Cross-Object References & Compile Limits",
+    "category": "Admin",
+    "summary": "Complete blueprint for read-only calculated formula fields, Cross-Object lookups, logical functions (IF, CASE, AND, OR), date math, and navigating 5,000-character compile limits.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 5",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Formula Fields Architecture & Execution Context",
+        "content": "Formula fields are read-only fields whose values are calculated dynamically at the exact moment a record is viewed, queried, or processed by automation. Because formulas are evaluated in real-time, they do not consume physical data storage.\n\nSupported Formula Return Types:\n• Checkbox, Currency, Date, Date/Time, Number, Percent, Text, Time.\n\nCross-Object Formulas: Formulas can reference fields from up to 10 parent objects related via Lookups or Master-Detail relationships using dot-notation (e.g., 'Contact.Account.BillingCity').",
+        "keyTakeaways": [
+          "Formula values are never stored directly in the database table, unless marked as deterministic and indexed.",
+          "You can navigate up to 10 relationships away from the base object in a cross-object formula."
+        ]
+      },
+      {
+        "heading": "2. Critical Formula Functions & Compile Size Troubleshooting",
+        "content": "Key Functions Every Salesforce Administrator Must Master:\n• CASE(): Streamlined multi-condition branching (faster and cleaner than nested IFs).\n• PRIORVALUE(): Available in validation rules and workflows to compare historical values.\n• ISBLANK() vs ISNULL(): Always use ISBLANK(); ISNULL does not support text fields.\n• IMAGE(): Display visual badges, flags, or stars based on criteria.\n\n*Governor Limit Alert:* A formula's compiled size cannot exceed 5,000 bytes. When hitting compile limits, break formulas into helper formula fields or push logic into Record-Triggered Flows.",
+        "codeSnippet": "// Dynamic Priority Indicator Badge Formula\nIMAGE(\n  CASE( Priority,\n    \"High\", \"/img/samples/flag_red.gif\",\n    \"Medium\", \"/img/samples/flag_yellow.gif\",\n    \"Low\", \"/img/samples/flag_green.gif\",\n    \"/s.gif\"\n  ),\n  \"Priority Indicator\"\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Use CASE() instead of nested IF() statements to drastically reduce formula compile size.",
+          "Formula fields are automatically updated on all dependent reports without needing record saves."
+        ]
+      }
+    ],
+    "isFeatured": true,
+    "order": 5,
+    "episode": 5,
+    "videoId": "vid-QjmJ7MQz5Ho"
+  },
+  {
+    "id": "admin-episode-6",
+    "title": "Records in Salesforce: Record IDs (15 vs. 18 Characters), CRUD Operations & Recycle Bin",
+    "category": "Admin",
+    "summary": "Comprehensive guide to record creation, edit locks, hard vs soft deletes, 15 vs 18 character Case-Sensitive IDs, and Recycle Bin retention rules.",
+    "readTime": "13 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 6",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Records in Salesforce: Record IDs (15 vs. 18 Characters), CRUD Operations & Recycle Bin)",
+        "content": "Comprehensive guide to record creation, edit locks, hard vs soft deletes, 15 vs 18 character Case-Sensitive IDs, and Recycle Bin retention rules.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Records in Salesforce: Record IDs (15 vs. 18 Characters), CRUD Operations & Recycle Bin:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 6\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_6_notes.pdf",
+    "isFeatured": false,
+    "order": 6,
+    "episode": 6,
+    "videoId": "vid-UvRW9qFCoKs"
+  },
+  {
+    "id": "admin-episode-7",
+    "title": "Tabs in Salesforce: Custom Object Tabs, Web Tabs, Visualforce & Lightning Component Tabs",
+    "category": "Admin",
+    "summary": "Configuring navigation tabs, tab visibility settings (Default On, Default Off, Tab Hidden), and embedding web applications.",
+    "readTime": "11 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 7",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Tabs in Salesforce: Custom Object Tabs, Web Tabs, Visualforce & Lightning Component Tabs)",
+        "content": "Configuring navigation tabs, tab visibility settings (Default On, Default Off, Tab Hidden), and embedding web applications.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Tabs in Salesforce: Custom Object Tabs, Web Tabs, Visualforce & Lightning Component Tabs:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 7\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_7_notes.pdf",
+    "isFeatured": false,
+    "order": 7,
+    "episode": 7,
+    "videoId": "vid-YhycOblXkeI"
+  },
+  {
+    "id": "admin-episode-8",
+    "title": "Apps & App Launcher: Standard vs. Custom Apps, Navigation Styles & Brand Customization",
+    "category": "Admin",
+    "summary": "Architecting Lightning Applications, standard navigation vs. console navigation, App Launcher permissions, and branded color palettes.",
+    "readTime": "12 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 8",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Apps & App Launcher: Standard vs. Custom Apps, Navigation Styles & Brand Customization)",
+        "content": "Architecting Lightning Applications, standard navigation vs. console navigation, App Launcher permissions, and branded color palettes.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Apps & App Launcher: Standard vs. Custom Apps, Navigation Styles & Brand Customization:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 8\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_8_notes.pdf",
+    "isFeatured": false,
+    "order": 8,
+    "episode": 8,
+    "videoId": "vid-u0q5HqEDqz4"
+  },
+  {
+    "id": "admin-episode-9",
+    "title": "Page Layouts in Salesforce: Layout Editor, Sections, Related Lists & Profile Assignments",
+    "category": "Admin",
+    "summary": "Designing user interfaces using the Classic Page Layout editor, required fields, read-only fields, related list sorting, and assignment matrices.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 9",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Page Layouts in Salesforce: Layout Editor, Sections, Related Lists & Profile Assignments)",
+        "content": "Designing user interfaces using the Classic Page Layout editor, required fields, read-only fields, related list sorting, and assignment matrices.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Page Layouts in Salesforce: Layout Editor, Sections, Related Lists & Profile Assignments:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 9\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_9_notes.pdf",
+    "isFeatured": false,
+    "order": 9,
+    "episode": 9,
+    "videoId": "vid-npeBoo84ZD4"
+  },
+  {
+    "id": "admin-episode-10",
+    "title": "Record Types & Business Logic: Persona Tailoring, Page Layout Mapping & Picklist Filtering",
+    "category": "Admin",
+    "summary": "Enterprise implementation of Record Types to drive differentiated business processes, custom picklist value subsets, and layout assignments.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 10",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Record Types & Business Logic: Persona Tailoring, Page Layout Mapping & Picklist Filtering)",
+        "content": "Enterprise implementation of Record Types to drive differentiated business processes, custom picklist value subsets, and layout assignments.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Record Types & Business Logic: Persona Tailoring, Page Layout Mapping & Picklist Filtering:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 10\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_10_notes.pdf",
+    "isFeatured": false,
+    "order": 10,
+    "episode": 10,
+    "videoId": "vid-R2-w_IOEeFc"
+  },
+  {
+    "id": "admin-episode-11",
+    "title": "Compact Layouts & Highlights Panel: Desktop & Mobile Header Architecture",
+    "category": "Admin",
+    "summary": "Optimizing the top highlights panel for Lightning Experience and Salesforce Mobile app, primary compact layouts, and key field hierarchies.",
+    "readTime": "10 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 11",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Compact Layouts & Highlights Panel: Desktop & Mobile Header Architecture)",
+        "content": "Optimizing the top highlights panel for Lightning Experience and Salesforce Mobile app, primary compact layouts, and key field hierarchies.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Compact Layouts & Highlights Panel: Desktop & Mobile Header Architecture:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 11\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_11_notes.pdf",
+    "isFeatured": false,
+    "order": 11,
+    "episode": 11,
+    "videoId": "vid-ZCNfTme9NDY"
+  },
+  {
+    "id": "admin-episode-12",
+    "title": "Lightning App Builder & Pages: App, Home & Record Page Customization",
+    "category": "Admin",
+    "summary": "Building reactive user interfaces using Lightning Web Components, component visibility filters, dynamic page activation, and org/app/profile defaults.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 12",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Lightning App Builder & Pages: App, Home & Record Page Customization)",
+        "content": "Building reactive user interfaces using Lightning Web Components, component visibility filters, dynamic page activation, and org/app/profile defaults.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Lightning App Builder & Pages: App, Home & Record Page Customization:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 12\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_12_notes.pdf",
+    "isFeatured": false,
+    "order": 12,
+    "episode": 12,
+    "videoId": "vid-aUfqDprxjy0"
+  },
+  {
+    "id": "admin-episode-13",
+    "title": "Dynamic Forms in Salesforce: Upgrading Page Layouts & Conditional Field Visibility",
+    "category": "Admin",
+    "summary": "Modernizing page architectures with Dynamic Forms: breaking bloated layouts into flexible field sections, reducing maintenance overhead, and field rules.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 13",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Dynamic Forms in Salesforce: Upgrading Page Layouts & Conditional Field Visibility)",
+        "content": "Modernizing page architectures with Dynamic Forms: breaking bloated layouts into flexible field sections, reducing maintenance overhead, and field rules.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Dynamic Forms in Salesforce: Upgrading Page Layouts & Conditional Field Visibility:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 13\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_13_notes.pdf",
+    "isFeatured": false,
+    "order": 13,
+    "episode": 13,
+    "videoId": "vid-1WYrdCKEogI"
+  },
+  {
+    "id": "admin-episode-14",
+    "title": "Relationships Part 1 (Lookup): 1-to-Many Architecture, Cascading & Self-Relationships",
+    "category": "Admin",
+    "summary": "Deep dive into standard and custom Lookup relationships, loose coupling between entities, optional lookups, and deletion behaviors.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 14",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Relationships Part 1 (Lookup): 1-to-Many Architecture, Cascading & Self-Relationships)",
+        "content": "Deep dive into standard and custom Lookup relationships, loose coupling between entities, optional lookups, and deletion behaviors.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Relationships Part 1 (Lookup): 1-to-Many Architecture, Cascading & Self-Relationships:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 14\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_14_notes.pdf",
+    "isFeatured": false,
+    "order": 14,
+    "episode": 14,
+    "videoId": "vid-nuLJ4oJO7cc"
+  },
+  {
+    "id": "admin-episode-15",
+    "title": "Relationships Part 2 (Master-Detail): Cascade Deletes, Security Inheritance & Roll-up Summaries",
+    "category": "Admin",
+    "summary": "Tight coupling data modeling, automated cascade delete mechanics, inherited record security, and COUNT/SUM/MIN/MAX Roll-up Summary fields.",
+    "readTime": "17 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 15",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Relationships Part 2 (Master-Detail): Cascade Deletes, Security Inheritance & Roll-up Summaries)",
+        "content": "Tight coupling data modeling, automated cascade delete mechanics, inherited record security, and COUNT/SUM/MIN/MAX Roll-up Summary fields.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Relationships Part 2 (Master-Detail): Cascade Deletes, Security Inheritance & Roll-up Summaries:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 15\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_15_notes.pdf",
+    "isFeatured": false,
+    "order": 15,
+    "episode": 15,
+    "videoId": "vid-FJBkRERDU_I"
+  },
+  {
+    "id": "admin-episode-16",
+    "title": "Schema Builder & Data Modeling: Visual ER Diagrams & Rapid Schema Prototyping",
+    "category": "Admin",
+    "summary": "Visualizing complex enterprise data models with Schema Builder, creating objects and fields on canvas, and debugging relationship loops.",
+    "readTime": "12 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 16",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Schema Builder & Data Modeling: Visual ER Diagrams & Rapid Schema Prototyping)",
+        "content": "Visualizing complex enterprise data models with Schema Builder, creating objects and fields on canvas, and debugging relationship loops.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Schema Builder & Data Modeling: Visual ER Diagrams & Rapid Schema Prototyping:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 16\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_16_notes.pdf",
+    "isFeatured": false,
+    "order": 16,
+    "episode": 16,
+    "videoId": "vid-veFsMLwuR2g"
+  },
+  {
+    "id": "admin-episode-17",
+    "title": "Validation Rules: Formula Error Logic, Error Display Positioning & PRIORVALUE Patterns",
+    "category": "Admin",
+    "summary": "Enforcing enterprise data quality before commits: AND/OR boolean logic, REGEX validation, checking changed values, and bypass techniques.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 1 • Ep 17",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Validation Rules: Formula Error Logic, Error Display Positioning & PRIORVALUE Patterns)",
+        "content": "Enforcing enterprise data quality before commits: AND/OR boolean logic, REGEX validation, checking changed values, and bypass techniques.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Validation Rules: Formula Error Logic, Error Display Positioning & PRIORVALUE Patterns:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 17\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_17_notes.pdf",
+    "isFeatured": false,
+    "order": 17,
+    "episode": 17,
+    "videoId": "vid-wCtIm9GwLn8"
+  },
+  {
+    "id": "admin-episode-18",
+    "title": "Sales Process & Opportunity Lifecycle: Stages, Probabilities & Forecast Categories",
+    "category": "Admin",
+    "summary": "Configuring pipeline governance: Sales Processes mapped to Opportunity stages, win probability percentages, and Collaborative Forecast categories.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 18",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Sales Process & Opportunity Lifecycle: Stages, Probabilities & Forecast Categories)",
+        "content": "Configuring pipeline governance: Sales Processes mapped to Opportunity stages, win probability percentages, and Collaborative Forecast categories.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Sales Process & Opportunity Lifecycle: Stages, Probabilities & Forecast Categories:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 18\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_18_notes.pdf",
+    "isFeatured": false,
+    "order": 18,
+    "episode": 18,
+    "videoId": "vid-fsnte5zizEo"
+  },
+  {
+    "id": "admin-episode-19",
+    "title": "Buttons, Links & Actions: Detail Page Buttons, List View Actions & Quick Create Automations",
+    "category": "Admin",
+    "summary": "Streamlining user workflows with Quick Actions, object-specific actions, global actions, custom URL parameters, and Lightning page headers.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 19",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Buttons, Links & Actions: Detail Page Buttons, List View Actions & Quick Create Automations)",
+        "content": "Streamlining user workflows with Quick Actions, object-specific actions, global actions, custom URL parameters, and Lightning page headers.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Buttons, Links & Actions: Detail Page Buttons, List View Actions & Quick Create Automations:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 19\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_19_notes.pdf",
+    "isFeatured": false,
+    "order": 19,
+    "episode": 19,
+    "videoId": "vid-9WZ-4wVGwbc"
+  },
+  {
+    "id": "admin-episode-20",
+    "title": "Web-to-Lead Automation: HTML Form Generation, Lead Queues & Auto-Response Rules",
+    "category": "Admin",
+    "summary": "Capturing inbound leads from public web assets, embedding reCAPTCHA, handling daily submission limits, and automated welcome email chains.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 20",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Web-to-Lead Automation: HTML Form Generation, Lead Queues & Auto-Response Rules)",
+        "content": "Capturing inbound leads from public web assets, embedding reCAPTCHA, handling daily submission limits, and automated welcome email chains.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Web-to-Lead Automation: HTML Form Generation, Lead Queues & Auto-Response Rules:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 20\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_20_notes.pdf",
+    "isFeatured": false,
+    "order": 20,
+    "episode": 20,
+    "videoId": "vid-zaRKex8XOg0"
+  },
+  {
+    "id": "admin-episode-21",
+    "title": "Web-to-Case Automation: Inbound Customer Support Portals & Case Routing Engines",
+    "category": "Admin",
+    "summary": "Direct-to-case customer support intake forms, default case origins, assignment rule triggers, and automated notification routing.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 21",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Web-to-Case Automation: Inbound Customer Support Portals & Case Routing Engines)",
+        "content": "Direct-to-case customer support intake forms, default case origins, assignment rule triggers, and automated notification routing.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Web-to-Case Automation: Inbound Customer Support Portals & Case Routing Engines:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 21\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_21_notes.pdf",
+    "isFeatured": false,
+    "order": 21,
+    "episode": 21,
+    "videoId": "vid-9ib9UlItTcY"
+  },
+  {
+    "id": "admin-episode-22",
+    "title": "Email-to-Case Configuration: On-Demand Architecture, Routing Addresses & Threading Tokens",
+    "category": "Admin",
+    "summary": "Automated support ticketing from email: Email-to-Case agents vs On-Demand service, routing addresses, email loop prevention, and modern email threading.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 22",
+    "difficulty": "Advanced",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Email-to-Case Configuration: On-Demand Architecture, Routing Addresses & Threading Tokens)",
+        "content": "Automated support ticketing from email: Email-to-Case agents vs On-Demand service, routing addresses, email loop prevention, and modern email threading.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Email-to-Case Configuration: On-Demand Architecture, Routing Addresses & Threading Tokens:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 22\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_22_notes.pdf",
+    "isFeatured": false,
+    "order": 22,
+    "episode": 22,
+    "videoId": "vid-qs9443ZgGD4"
+  },
+  {
+    "id": "admin-episode-23",
+    "title": "Field History Tracking & Feed Tracking: Compliance Audits & Chatter Governance",
+    "category": "Admin",
+    "summary": "Audit-logging critical fields (up to 20 fields per object), Field History data retention, and configuring Chatter feed tracking for collaborative teams.",
+    "readTime": "12 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 23",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Field History Tracking & Feed Tracking: Compliance Audits & Chatter Governance)",
+        "content": "Audit-logging critical fields (up to 20 fields per object), Field History data retention, and configuring Chatter feed tracking for collaborative teams.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Field History Tracking & Feed Tracking: Compliance Audits & Chatter Governance:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 23\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_23_notes.pdf",
+    "isFeatured": false,
+    "order": 23,
+    "episode": 23,
+    "videoId": "vid-okn529Y1jnY"
+  },
+  {
+    "id": "admin-episode-24",
+    "title": "Public Groups in Salesforce: Shared User Collectives & Sharing Architectures",
+    "category": "Admin",
+    "summary": "Architecting Public Groups combining users, roles, and sub-roles to power Sharing Rules, report folder access, and queue memberships.",
+    "readTime": "11 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 24",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Public Groups in Salesforce: Shared User Collectives & Sharing Architectures)",
+        "content": "Architecting Public Groups combining users, roles, and sub-roles to power Sharing Rules, report folder access, and queue memberships.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Public Groups in Salesforce: Shared User Collectives & Sharing Architectures:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 24\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_24_notes.pdf",
+    "isFeatured": false,
+    "order": 24,
+    "episode": 24,
+    "videoId": "vid-YRGHtN98UuY"
+  },
+  {
+    "id": "admin-episode-25",
+    "title": "Queues in Salesforce: Shared Workloads, Lead/Case Routing & Taking Ownership",
+    "category": "Admin",
+    "summary": "Managing shared backlogs: supported queue objects, Lead/Case routing, queue email notifications, and list view acceptance workflows.",
+    "readTime": "13 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 25",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Queues in Salesforce: Shared Workloads, Lead/Case Routing & Taking Ownership)",
+        "content": "Managing shared backlogs: supported queue objects, Lead/Case routing, queue email notifications, and list view acceptance workflows.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Queues in Salesforce: Shared Workloads, Lead/Case Routing & Taking Ownership:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 25\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_25_notes.pdf",
+    "isFeatured": false,
+    "order": 25,
+    "episode": 25,
+    "videoId": "vid-GwPMbK6VEZE"
+  },
+  {
+    "id": "admin-episode-26",
+    "title": "Approval Processes: Multi-Step Evaluation, Submission Actions & Rejection Paths",
+    "category": "Admin",
+    "summary": "Automating governance: Entry criteria, automated routing to managers, unanimous vs first-responder approvals, field locks, and email alerts.",
+    "readTime": "18 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 26",
+    "difficulty": "Advanced",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Approval Processes: Multi-Step Evaluation, Submission Actions & Rejection Paths)",
+        "content": "Automating governance: Entry criteria, automated routing to managers, unanimous vs first-responder approvals, field locks, and email alerts.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Approval Processes: Multi-Step Evaluation, Submission Actions & Rejection Paths:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 26\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_26_notes.pdf",
+    "isFeatured": false,
+    "order": 26,
+    "episode": 26,
+    "videoId": "vid-XcWaC28bAvM"
+  },
+  {
+    "id": "admin-episode-27",
+    "title": "Classic Email Templates: Text, HTML, Custom Letterheads & Merge Field Logic",
+    "category": "Admin",
+    "summary": "Authoring Classic templates, letterhead standards, merge fields for records and organizations, and automated workflow alert attachments.",
+    "readTime": "13 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 27",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Classic Email Templates: Text, HTML, Custom Letterheads & Merge Field Logic)",
+        "content": "Authoring Classic templates, letterhead standards, merge fields for records and organizations, and automated workflow alert attachments.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Classic Email Templates: Text, HTML, Custom Letterheads & Merge Field Logic:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 27\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_27_notes.pdf",
+    "isFeatured": false,
+    "order": 27,
+    "episode": 27,
+    "videoId": "vid-ZFWyyysDVmc"
+  },
+  {
+    "id": "admin-episode-28",
+    "title": "Lightning Email Templates: Email Template Builder, Enhanced Letterheads & Folders",
+    "category": "Admin",
+    "summary": "Modern drag-and-drop template designer, rich styling, enhanced letterheads, and granular folder sharing permissions.",
+    "readTime": "13 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 2 • Ep 28",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Lightning Email Templates: Email Template Builder, Enhanced Letterheads & Folders)",
+        "content": "Modern drag-and-drop template designer, rich styling, enhanced letterheads, and granular folder sharing permissions.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Lightning Email Templates: Email Template Builder, Enhanced Letterheads & Folders:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 28\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_28_notes.pdf",
+    "isFeatured": false,
+    "order": 28,
+    "episode": 28,
+    "videoId": "vid-em6hI0qpxik"
+  },
+  {
+    "id": "admin-episode-29",
+    "title": "Reports in Salesforce: Tabular, Summary & Matrix Reports, Custom Report Types & Bucketing",
+    "category": "Admin",
+    "summary": "Analytics foundation: 4 report formats, cross-filters, filter logic (AND/OR), custom bucket fields, summary formulas, and report scheduling.",
+    "readTime": "18 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 3 • Ep 29",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Reports in Salesforce: Tabular, Summary & Matrix Reports, Custom Report Types & Bucketing)",
+        "content": "Analytics foundation: 4 report formats, cross-filters, filter logic (AND/OR), custom bucket fields, summary formulas, and report scheduling.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Reports in Salesforce: Tabular, Summary & Matrix Reports, Custom Report Types & Bucketing:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 29\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_29_notes.pdf",
+    "isFeatured": false,
+    "order": 29,
+    "episode": 29,
+    "videoId": "vid-tf7w1i-rW0M"
+  },
+  {
+    "id": "admin-episode-30",
+    "title": "Salesforce Dashboards: Charts, Gauges, Dynamic Dashboards & Folder Access Control",
+    "category": "Admin",
+    "summary": "Executive business visualization: Chart types, metric widgets, dashboard filters, running user permissions (Viewer vs Specific User), and folder sharing.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 3 • Ep 30",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Salesforce Dashboards: Charts, Gauges, Dynamic Dashboards & Folder Access Control)",
+        "content": "Executive business visualization: Chart types, metric widgets, dashboard filters, running user permissions (Viewer vs Specific User), and folder sharing.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Salesforce Dashboards: Charts, Gauges, Dynamic Dashboards & Folder Access Control:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 30\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_30_notes.pdf",
+    "isFeatured": false,
+    "order": 30,
+    "episode": 30,
+    "videoId": "vid-Obhtp1XZLvo"
+  },
+  {
+    "id": "admin-episode-31",
+    "title": "Salesforce Security Architecture: The 4 Security Layers (Org, Object, Field, Record)",
+    "category": "Admin",
+    "summary": "The definitive security blueprint: Layer 1 (Org/Network), Layer 2 (Object CRUD), Layer 3 (Field-Level Security), and Layer 4 (Record Sharing).",
+    "readTime": "20 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 31",
+    "difficulty": "Advanced",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Salesforce Security Architecture: The 4 Security Layers (Org, Object, Field, Record))",
+        "content": "The definitive security blueprint: Layer 1 (Org/Network), Layer 2 (Object CRUD), Layer 3 (Field-Level Security), and Layer 4 (Record Sharing).\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Salesforce Security Architecture: The 4 Security Layers (Org, Object, Field, Record):\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 31\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_31_notes.pdf",
+    "isFeatured": false,
+    "order": 31,
+    "episode": 31,
+    "videoId": "vid-tTPzYNNsx7I"
+  },
+  {
+    "id": "admin-episode-32",
+    "title": "Users & Organization-Level Security: User Provisioning, Licenses, Locales & Deactivation",
+    "category": "Admin",
+    "summary": "User management lifecycle: Standard vs User licenses, timezone/locale inheritance, password resets, and Deactivating vs Freezing user accounts.",
+    "readTime": "14 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 32",
+    "difficulty": "Beginner",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Users & Organization-Level Security: User Provisioning, Licenses, Locales & Deactivation)",
+        "content": "User management lifecycle: Standard vs User licenses, timezone/locale inheritance, password resets, and Deactivating vs Freezing user accounts.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Users & Organization-Level Security: User Provisioning, Licenses, Locales & Deactivation:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 32\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_32_notes.pdf",
+    "isFeatured": false,
+    "order": 32,
+    "episode": 32,
+    "videoId": "vid-iyF1TCcZCAs"
+  },
+  {
+    "id": "admin-episode-33",
+    "title": "Login Security, Password Policies, IP Ranges & Multi-Factor Authentication (MFA)",
+    "category": "Admin",
+    "summary": "Hardening org access: Password expiration policies, Login Hours by Profile, Trusted IP Ranges vs Login IP Ranges, and mandatory MFA protocols.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 33",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Login Security, Password Policies, IP Ranges & Multi-Factor Authentication (MFA))",
+        "content": "Hardening org access: Password expiration policies, Login Hours by Profile, Trusted IP Ranges vs Login IP Ranges, and mandatory MFA protocols.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Login Security, Password Policies, IP Ranges & Multi-Factor Authentication (MFA):\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 33\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_33_notes.pdf",
+    "isFeatured": false,
+    "order": 33,
+    "episode": 33,
+    "videoId": "vid-vwTB5lGFyXA"
+  },
+  {
+    "id": "admin-episode-34",
+    "title": "Profiles, Permission Sets & Permission Set Groups: Minimum Access Principle",
+    "category": "Admin",
+    "summary": "Modern authorization design: Baseline 1:1 user profile, additive Permission Sets for functional skills, Muting Permission Sets, and lifecycle management.",
+    "readTime": "18 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 34",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Profiles, Permission Sets & Permission Set Groups: Minimum Access Principle)",
+        "content": "Modern authorization design: Baseline 1:1 user profile, additive Permission Sets for functional skills, Muting Permission Sets, and lifecycle management.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Profiles, Permission Sets & Permission Set Groups: Minimum Access Principle:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 34\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_34_notes.pdf",
+    "isFeatured": false,
+    "order": 34,
+    "episode": 34,
+    "videoId": "vid-aHI3xuQ1zvA"
+  },
+  {
+    "id": "admin-episode-35",
+    "title": "Object-Level Security & CRUD: Create, Read, Edit, Delete & Administrative Overrides",
+    "category": "Admin",
+    "summary": "Table-level authorization: CRUD basics, View All / Modify All per object, vs system-wide View All Data / Modify All Data super-permissions.",
+    "readTime": "15 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 35",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Object-Level Security & CRUD: Create, Read, Edit, Delete & Administrative Overrides)",
+        "content": "Table-level authorization: CRUD basics, View All / Modify All per object, vs system-wide View All Data / Modify All Data super-permissions.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Object-Level Security & CRUD: Create, Read, Edit, Delete & Administrative Overrides:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 35\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_35_notes.pdf",
+    "isFeatured": false,
+    "order": 35,
+    "episode": 35,
+    "videoId": "vid-BE--_ReJ-ls"
+  },
+  {
+    "id": "admin-episode-36",
+    "title": "Field-Level Security (FLS): Read Access, Edit Access & Platform Enforcement Truths",
+    "category": "Admin",
+    "summary": "Securing specific data points: Visible vs Read-Only FLS, FLS overrides over page layouts, and how FLS protects data in reports, APIs, and search.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 36",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Field-Level Security (FLS): Read Access, Edit Access & Platform Enforcement Truths)",
+        "content": "Securing specific data points: Visible vs Read-Only FLS, FLS overrides over page layouts, and how FLS protects data in reports, APIs, and search.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Field-Level Security (FLS): Read Access, Edit Access & Platform Enforcement Truths:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 36\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_36_notes.pdf",
+    "isFeatured": false,
+    "order": 36,
+    "episode": 36,
+    "videoId": "vid-pLyUN9txmac"
+  },
+  {
+    "id": "admin-episode-37",
+    "title": "Record-Level Security & OWD: Organization-Wide Defaults, Role Hierarchy & Sharing Rules",
+    "category": "Admin",
+    "summary": "Mastering record access: Private vs Public OWD baselines, Role Hierarchy vertical roll-up, Criteria/Owner Sharing Rules, and manual sharing.",
+    "readTime": "20 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 37",
+    "difficulty": "Advanced",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Record-Level Security & OWD: Organization-Wide Defaults, Role Hierarchy & Sharing Rules)",
+        "content": "Mastering record access: Private vs Public OWD baselines, Role Hierarchy vertical roll-up, Criteria/Owner Sharing Rules, and manual sharing.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Record-Level Security & OWD: Organization-Wide Defaults, Role Hierarchy & Sharing Rules:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 37\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_37_notes.pdf",
+    "isFeatured": false,
+    "order": 37,
+    "episode": 37,
+    "videoId": "vid-jKVtlW5AFvc"
+  },
+  {
+    "id": "admin-episode-38",
+    "title": "Restriction Rules & Scoping Rules in Salesforce: The GIVE vs. RESTRICT Paradigm",
+    "category": "Admin",
+    "summary": "Advanced record filtering: Why Sharing Rules only grant access, how Restriction Rules take away access matching criteria, and Scoping Rules for focused list views.",
+    "readTime": "17 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 38",
+    "difficulty": "Advanced",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (Restriction Rules & Scoping Rules in Salesforce: The GIVE vs. RESTRICT Paradigm)",
+        "content": "Advanced record filtering: Why Sharing Rules only grant access, how Restriction Rules take away access matching criteria, and Scoping Rules for focused list views.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for Restriction Rules & Scoping Rules in Salesforce: The GIVE vs. RESTRICT Paradigm:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 38\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_38_notes.pdf",
+    "isFeatured": false,
+    "order": 38,
+    "episode": 38,
+    "videoId": "vid-L-5WkMPmIaE"
+  },
+  {
+    "id": "admin-episode-39",
+    "title": "My Domain, Login Access & Session Security: Subdomains, Support Access & Timeouts",
+    "category": "Admin",
+    "summary": "Enterprise identity infrastructure: Custom My Domain branding, granting Login Access to Administrators/Support, Session Inactivity timeouts, and High Assurance MFA.",
+    "readTime": "16 min read",
+    "updatedAt": "Official SacWac 2026 Edition",
+    "badge": "Module 4 • Ep 39",
+    "difficulty": "Intermediate",
+    "sections": [
+      {
+        "heading": "1. Conceptual Architecture & Core Concepts (My Domain, Login Access & Session Security: Subdomains, Support Access & Timeouts)",
+        "content": "Enterprise identity infrastructure: Custom My Domain branding, granting Login Access to Administrators/Support, Session Inactivity timeouts, and High Assurance MFA.\n\nIn this lesson of the SacWac Salesforce Administrator Full Course, we examine the fundamental architecture of this capability within the Salesforce multi-tenant platform. Understanding both the business use cases and technical limitations is critical for enterprise implementation and the Salesforce Certified Administrator exam.\n\nKey Principles:\n• Configuration over custom code: Utilizing standard platform capabilities to minimize technical debt.\n• Scalability: Ensuring designs accommodate high data volumes (LDV) and evolving business requirements.\n• Auditability: Designing configurations with clear traceability and change tracking.",
+        "keyTakeaways": [
+          "Always test changes thoroughly in a Developer Sandbox before deploying to Production.",
+          "Document configuration metadata and business requirements for maintainability."
+        ]
+      },
+      {
+        "heading": "2. Practical Implementation Walkthrough & Best Practices",
+        "content": "Step-by-step guidance and enterprise considerations for My Domain, Login Access & Session Security: Subdomains, Support Access & Timeouts:\n\n1. Navigation: Access Setup > Object Manager or Administration controls.\n2. Best Practices:\n   • Follow standard naming conventions (clear labels, API names, and descriptions).\n   • Review user permissions and security implications (FLS, OWD, Profile access).\n   • Consider user experience on both Desktop Lightning Experience and Salesforce Mobile app.\n3. Common Pitfalls to Avoid:\n   • Creating redundant configurations that conflict with existing automation.\n   • Neglecting documentation and description fields on custom components.\n   • Failing to test with multiple user personas with restricted permissions.",
+        "codeSnippet": "// Example verification or formula logic for Episode 39\n// Always validate null checks and active user criteria:\nAND(\n  $User.UIThemeDisplayed = \"Theme4d\",\n  NOT(ISBLANK(Id))\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Always review the impact on downstream automation (Flows, Validation Rules, Apex).",
+          "Use descriptive names and comments on all custom configurations."
+        ]
+      },
+      {
+        "heading": "3. Exam Essentials & Key Takeaways for ADM-201",
+        "content": "For the Salesforce Certified Administrator examination, remember the following critical concepts regarding this topic:\n\n• Who can configure this? Typically System Administrators with 'Customize Application' permission.\n• What are the limits? Always be aware of governor limits, edition restrictions (Enterprise vs Unlimited), and maximum thresholds.\n• How does this interact with Security? Layer permissions strictly: Org Level > Object Level > Field Level > Record Level.\n\nKeep this study guide accessible as a reference during your revision!",
+        "keyTakeaways": [
+          "Core exam focus: Know the default behavior when no custom settings are applied.",
+          "Security baseline: Access is additive through Permission Sets and Sharing Rules, but restricted through Restriction Rules."
+        ]
+      }
+    ],
+    "pdfUrl": "/docs/admin/admin_episode_39_notes.pdf",
+    "isFeatured": false,
+    "order": 39,
+    "episode": 39,
+    "videoId": "vid-YR9A4vW7gfA"
+  },
+  {
+    "id": "flow-lifecycle-deep-dive",
+    "title": "Salesforce Record-Triggered Flow Execution Lifecycle & Architecture Guide",
+    "category": "Flows",
+    "summary": "The definitive architect guide to Fast Field Updates (Before-Save), Actions & Related Records (After-Save), Triggers interaction, and avoiding recursive loops.",
+    "readTime": "12 min read",
+    "updatedAt": "November 2024",
+    "badge": "Architect Guide",
+    "difficulty": "Intermediate",
+    "viewsCount": 1420,
+    "sections": [
+      {
+        "heading": "1. The Fundamental Distinction: Before-Save vs After-Save",
+        "content": "A Record-Triggered Flow can be configured to run in two distinct execution phases. Choosing the wrong phase causes unnecessary DML operations, triggers additional recursive saves, and degrades CPU limits by up to 10x.\n\n• Fast Field Updates (Before-Save): Fires BEFORE the record is saved to the database. It updates fields directly on the $Record global variable without issuing a DML statement.\n• Actions and Related Records (After-Save): Fires AFTER the record is committed into the database. You have access to the record Id and can create/update child records, invoke email alerts, or call Apex invocable actions.",
+        "keyTakeaways": [
+          "Always use Fast Field Updates when updating fields on the trigger record itself.",
+          "Fast Field Updates are up to 10x faster because no DML transaction or extra trigger chain occurs.",
+          "Use After-Save only when you need the Record Id or need to update related/parent/child objects."
+        ]
+      },
+      {
+        "heading": "2. Visual Representation: Order of Execution",
+        "content": "Here is the exact step-by-step sequence when an end user or integration clicks 'Save':\n1. System validation rules (field length, required fields, formats)\n2. Fast Field Update (Before-Save) Flows execute\n3. Before-Insert / Before-Update Apex Triggers execute\n4. Custom Validation Rules execute\n5. Record is saved to database (not yet committed)\n6. After-Insert / After-Update Apex Triggers execute\n7. Assignment Rules & Auto-Response Rules execute\n8. Workflow Rules execute\n9. Actions & Related Records (After-Save) Flows execute\n10. Roll-up Summary fields calculate\n11. Database Commit.",
+        "codeSnippet": "// Pseudo Representation of Execution Chain\nSaveRequest req = UserAction.save();\nRunSystemValidation();\nExecuteBeforeSaveFlows(req.record); // Direct in-memory modification\nExecuteBeforeTriggers(req.record);\nValidateBusinessRules(req.record);\nWriteToDatabaseNoCommit();\nExecuteAfterTriggers();\nExecuteAfterSaveFlows(); // Creates related records / outbound actions\nCommitTransaction();",
+        "language": "java",
+        "keyTakeaways": [
+          "Custom validation rules run AFTER Before-Save Flows! That means Before-Save Flows can populate a required field before validation checks fail.",
+          "Workflow rules run BEFORE After-Save Flows, but Salesforce recommends migrating all Workflow/Process Builders to Flows."
+        ]
+      },
+      {
+        "heading": "3. Preventing Infinite Recursion in After-Save Flows",
+        "content": "When an After-Save flow updates the same record, it can trigger the entire order of execution again, leading to 'System.LimitException: Maximum stack depth reached'. To prevent this:\n\n• Use Entry Conditions wisely: Check 'Only when a record is updated to meet the condition requirements'.\n• Use a Custom Checkbox field (e.g., Is_Flow_Bypassed__c) or Custom Permission / Platform Cache bypass pattern.\n• Avoid 'Update Triggering Record' inside an After-Save Flow if the fields can be updated in a Before-Save Flow instead.",
+        "keyTakeaways": [
+          "Check entry criteria 'Only when record meets condition requirements' to prevent continuous re-execution.",
+          "Never execute unnecessary UPDATE steps on $Record inside After-Save."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "apex-collections-masterclass",
+    "title": "Apex Collections Masterclass: Enterprise Lists, Sets & Maps Patterns",
+    "category": "Apex",
+    "summary": "Master bulkified collections, grouping patterns, avoiding governor limit traps, and building high-performance Map structures for enterprise codebases.",
+    "readTime": "15 min read",
+    "updatedAt": "November 2024",
+    "badge": "Core Dev",
+    "difficulty": "Intermediate",
+    "viewsCount": 2180,
+    "sections": [
+      {
+        "heading": "1. Why Collections are the Backbone of Bulkification",
+        "content": "Salesforce operates in a multi-tenant cloud with strict Governor Limits (max 100 SOQL queries and 150 DML statements per sync transaction). If code handles records individually without bulkified collections, it will inevitably crash when handling data loads or bulk batch updates.",
+        "keyTakeaways": [
+          "Lists maintain insertion order and allow duplicates.",
+          "Sets contain unique elements and have O(1) average lookup time.",
+          "Maps link unique keys to single values or child lists."
+        ]
+      },
+      {
+        "heading": "2. Pattern 1: Grouping Child Records by Parent Id using Map<Id, List<sObject>>",
+        "content": "One of the most frequent patterns in Salesforce development is querying children (e.g. Contacts or Opportunities) and mapping them to their parent Account Id without doing SOQL inside loops.",
+        "codeSnippet": "// Bulkified Parent-Child Mapping Pattern\nMap<Id, List<Contact>> accountToContactsMap = new Map<Id, List<Contact>>();\n\nfor (Contact con : [SELECT Id, AccountId, LastName, Email FROM Contact WHERE AccountId IN :accountIds]) {\n    if (!accountToContactsMap.containsKey(con.AccountId)) {\n        accountToContactsMap.put(con.AccountId, new List<Contact>());\n    }\n    accountToContactsMap.get(con.AccountId).add(con);\n}\n\n// Efficiently access contacts for an account without querying again\nfor (Id accId : accountIds) {\n    if (accountToContactsMap.containsKey(accId)) {\n        List<Contact> relatedCons = accountToContactsMap.get(accId);\n        System.debug('Found ' + relatedCons.size() + ' contacts for account: ' + accId);\n    }\n}",
+        "language": "java",
+        "keyTakeaways": [
+          "Avoid SOQL inside for-loops at all costs.",
+          "Initialize the list inside the map on first encounter of each unique parent ID."
+        ]
+      },
+      {
+        "heading": "3. Pattern 2: Map Constructor from SOQL List",
+        "content": "Salesforce provides an instant shortcut constructor that converts any SOQL query directly into a Map<Id, sObject> with zero loops required.",
+        "codeSnippet": "// Direct SOQL Map initialization (Zero Loop overhead)\nMap<Id, Account> accountMap = new Map<Id, Account>([\n    SELECT Id, Name, AnnualRevenue, Rating \n    FROM Account \n    WHERE Id IN :accountIds\n]);\n\n// Fast O(1) retrieval\nAccount myAcc = accountMap.get(targetId);",
+        "language": "java",
+        "keyTakeaways": [
+          "The Map<Id, sObject> SOQL constructor creates an indexed map instantly in one line.",
+          "Always use this when comparing Old vs New values in Trigger.new and Trigger.oldMap."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "salesforce-security-restriction-rules",
+    "title": "Salesforce Security Architecture: Restriction Rules, Scoping Rules & FLS",
+    "category": "Security",
+    "summary": "Deep architectural explanation of how Restriction Rules bypass Org-Wide Defaults, how Scoping Rules streamline user views, and how to combine them with Permission Sets.",
+    "readTime": "10 min read",
+    "updatedAt": "October 2024",
+    "badge": "Security & Architecture",
+    "difficulty": "Advanced",
+    "viewsCount": 980,
+    "sections": [
+      {
+        "heading": "1. Breaking the Golden Rule of Salesforce Sharing",
+        "content": "For 20 years, Salesforce sharing was purely additive: Org-Wide Default (OWD) set the baseline, and Role Hierarchy, Sharing Rules, and Manual Sharing opened up more access. You could never restrict access below OWD.\n\nRestriction Rules changed everything. They allow you to proactively filter and HIDE records from users even when OWD is Public Read Only or Public Read/Write.",
+        "keyTakeaways": [
+          "Restriction Rules subtract access from the sharing calculation.",
+          "Ideal for sensitive data such as Contracts, Custom Objects, Tasks, and Events containing confidential information.",
+          "Supported on Custom Objects, Tasks, Events, Contracts, and TimeSheets."
+        ]
+      },
+      {
+        "heading": "2. Restriction Rules vs Scoping Rules: Key Differences",
+        "content": "• Restriction Rules: Users cannot access records that do not match the rule criteria. Records disappear from Search, SOQL queries, Related Lists, and Reports. If a user enters the direct record URL, they get 'Insufficient Privileges'.\n\n• Scoping Rules: Scoping rules do NOT block access to records! Instead, they adjust default filters in search and list views so users see only records relevant to their division, region, or job function. The user can still view the record if searched directly or via URL.",
+        "keyTakeaways": [
+          "Restriction Rules = Hard Security Block (Access Denied).",
+          "Scoping Rules = Productivity & Relevance Filter (Access Allowed, but uncluttered)."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "top-validation-rules-cheat-sheet",
+    "title": "Complex Validation Rules & Cross-Object Formula Cheat Sheet",
+    "category": "Validation Rules",
+    "summary": "Formulas for phone number formatting, preventing status back-pedaling, enforcing custom permissions bypass, and cross-object validations.",
+    "readTime": "8 min read",
+    "updatedAt": "November 2024",
+    "badge": "Practical Formulas",
+    "difficulty": "Beginner",
+    "viewsCount": 1640,
+    "sections": [
+      {
+        "heading": "1. Restrict Status Backward Changes (Prevent Stage Regress)",
+        "content": "Ensures that Opportunity Stage can only move forward and cannot be reverted backwards unless the user has an Admin bypass permission.",
+        "codeSnippet": "AND(\n  ISCHANGED(StageName),\n  CASE(StageName,\n    \"Prospecting\", 1,\n    \"Qualification\", 2,\n    \"Proposal\", 3,\n    \"Negotiation\", 4,\n    \"Closed Won\", 5,\n    0\n  ) <\n  CASE(PRIORVALUE(StageName),\n    \"Prospecting\", 1,\n    \"Qualification\", 2,\n    \"Proposal\", 3,\n    \"Negotiation\", 4,\n    \"Closed Won\", 5,\n    0\n  ),\n  NOT($Permission.Bypass_Validation_Rules)\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "Using CASE() allows numeric ranking of picklist steps.",
+          "Always include a $Permission bypass so automated data migrations do not fail."
+        ]
+      },
+      {
+        "heading": "2. Regex US/International Phone Number Formatter",
+        "content": "Forces phone numbers to conform to standard 10-digit formats with dashes or parentheses.",
+        "codeSnippet": "NOT(\n  REGEX(Phone, \"^\\\\(?([0-9]{3})\\\\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$\")\n)",
+        "language": "sql",
+        "keyTakeaways": [
+          "REGEX formulas require double backslashes for escaping regex characters in Salesforce formula syntax."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "scenario-based-developer-interview-guide",
+    "title": "Top 25 Scenario-Based Salesforce Interview Questions & Architecture Patterns",
+    "category": "Interview Prep",
+    "summary": "Real technical scenarios asked in Senior Salesforce Developer and Architect interviews: Async Apex, Batch error handling, Platform Events, and Trigger frameworks.",
+    "readTime": "20 min read",
+    "updatedAt": "November 2024",
+    "badge": "Interview Accelerator",
+    "difficulty": "Advanced",
+    "viewsCount": 3120,
+    "sections": [
+      {
+        "heading": "1. Scenario: Update 500,000 Records Without Hitting CPU Time Limits",
+        "content": "Interviewer asks: 'We need to recalculate a compliance score across 500,000 Account records nightly. Standard triggers fail with CPU timeout. How do you design this?'\n\nOptimal Solution:\n1. Implement a Batch Apex class implementing Database.Batchable<sObject> and Database.Stateful.\n2. Query locator handles up to 50 million records.\n3. Chunk size tuned to 200 (or 50 if heavy logic occurs) to avoid governor limits.\n4. Utilize a Trigger Handler bypass flag during batch execution so unrelated trigger events do not execute.",
+        "codeSnippet": "public class ComplianceRecalculationBatch implements Database.Batchable<sObject>, Database.Stateful {\n    public Integer totalProcessed = 0;\n\n    public Database.QueryLocator start(Database.BatchableContext bc) {\n        return Database.getQueryLocator([\n            SELECT Id, LastComplianceReviewDate__c, ComplianceScore__c \n            FROM Account \n            WHERE NeedsReview__c = true\n        ]);\n    }\n\n    public void execute(Database.BatchableContext bc, List<Account> scope) {\n        // Turn off redundant trigger validation\n        TriggerBypass.disable('AccountTrigger');\n        \n        for (Account acc : scope) {\n            acc.ComplianceScore__c = ComplianceCalculator.compute(acc);\n            totalProcessed++;\n        }\n        \n        Database.update(scope, false); // All or none = false for partial success\n    }\n\n    public void finish(Database.BatchableContext bc) {\n        System.debug('Total accounts processed: ' + totalProcessed);\n    }\n}",
+        "language": "java",
+        "keyTakeaways": [
+          "Use Database.update(records, false) to allow valid records to save even if some fail.",
+          "Use Database.Stateful to persist variables across batch executions."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "admin-note-03",
+    "title": "Salesforce Security Architecture: The 4 Defense Layers Deep-Dive",
+    "category": "Security",
+    "summary": "The definitive enterprise guide to Org-Level, Object-Level (CRUD), Field-Level (FLS), and Record-Level (OWD, Role Hierarchy, Sharing Rules, Restriction Rules) security.",
+    "readTime": "18 min read",
+    "updatedAt": "Nov 10, 2026",
+    "badge": "Security Architecture",
+    "difficulty": "Advanced",
+    "isFeatured": true,
+    "sections": [
+      {
+        "heading": "1. The 4 Security Layers Overview",
+        "content": "Salesforce utilizes a layered security model often visualized as concentric gates:\n\n1. **Layer 1: Organization Level (The Front Gate)**: \"Can this person enter the system?\" Controlled via Username/Password, Multi-Factor Authentication (MFA), Login IP Ranges, and Login Hours.\n2. **Layer 2: Object Level (The Room Door)**: \"What objects can this user see or modify?\" Controlled via Profiles and Permission Sets (CRUD: Create, Read, Edit, Delete).\n3. **Layer 3: Field Level (The Cabinet)**: \"Which fields on that object can this user inspect or edit?\" Controlled via Field-Level Security (FLS: Visible / Read-Only).\n4. **Layer 4: Record Level (The Individual Folders)**: \"Which specific record rows can this user access?\" Controlled via OWD, Role Hierarchy, Sharing Rules, Manual Sharing, and Restriction Rules.",
+        "keyTakeaways": [
+          "Always remember: Object-level permissions control WHICH TYPES of records you can touch; Record-level controls WHICH SPECIFIC RECORDS you can view.",
+          "FLS overrides Page Layout settings. If a field is hidden via FLS, the user cannot access it via Reports, APIs, or UI."
+        ]
+      },
+      {
+        "heading": "2. Record-Level Security Architecture & The Sharing Pipeline",
+        "content": "Salesforce evaluates record access sequentially through the sharing pipeline:\n\n1. **Organization-Wide Defaults (OWD)**: The baseline access level across the entire company for users who do not own the record.\n   - **Private**: Only record owner and users above them in the Role Hierarchy can view/edit.\n   - **Public Read Only**: Everyone can view; only owner can edit.\n   - **Public Read/Write**: Everyone can view and edit.\n   - **Controlled by Parent**: Used strictly for child objects in Master-Detail relationships.\n2. **Role Hierarchy**: Automatically opens vertical access upwards. Managers inherit the same permissions as their subordinates on records owned by subordinates (unless \"Grant Access Using Hierarchies\" is disabled on custom objects).\n3. **Sharing Rules**: Used to grant horizontal access across department silos to Public Groups or Roles:\n   - **Owner-Based Sharing**: Records owned by Sales Reps shared Read/Write with Marketing Team.\n   - **Criteria-Based Sharing**: Records where `Status__c = 'Escalated'` shared automatically with Tier 2 Support.\n4. **Manual Sharing**: Allows record owners to manually share an individual record with a specific colleague for collaboration.\n5. **Restriction Rules**: The newest and most powerful security feature. Unlike sharing rules which only OPEN access, Restriction Rules **RESTRICT** access by filtering down visible records based on specific criteria.",
+        "keyTakeaways": [
+          "OWD is the ONLY place where you restrict baseline access. All subsequent sharing mechanisms (Hierarchy, Sharing Rules) only OPEN access wider.",
+          "Restriction Rules run after sharing evaluation to enforce strict compliance and sensitivity filters."
+        ]
+      }
+    ]
+  }
+]
