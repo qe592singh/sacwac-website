@@ -18,7 +18,7 @@ const DonationSchema: Schema<IDonation> = new Schema(
     status: {
       type: String,
       enum: ["pending", "published"],
-      default: "pending",
+      default: "published",
       index: true,
     },
     confirmedAt: { type: Date },

@@ -84,18 +84,14 @@ export default function AdminPage() {
   const [donations, setDonations] = useState<DonationItem[]>([]);
 
   // Donation tab state
-  const [donationFilter, setDonationFilter] = useState<"all" | "published" | "pending">("all");
   const [donationSearchQuery, setDonationSearchQuery] = useState("");
   const [editingDonation, setEditingDonation] = useState<DonationItem | null>(null);
   const [editDonationName, setEditDonationName] = useState("");
   const [editDonationAmount, setEditDonationAmount] = useState("");
   const [editDonationMessage, setEditDonationMessage] = useState("");
-  const [editDonationStatus, setEditDonationStatus] = useState<"pending" | "published">("published");
   const [donationMsg, setDonationMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Donation Settings state
-  const [donAboutTitle, setDonAboutTitle] = useState("About Sachin Singh");
-  const [donAboutText, setDonAboutText] = useState("");
   const [donQrImage, setDonQrImage] = useState("/images/payment-qr.png");
   const [donQuickAmounts, setDonQuickAmounts] = useState("500, 1000, 2500, 5000");
   const [donSettingsSaving, setDonSettingsSaving] = useState(false);
@@ -249,8 +245,6 @@ export default function AdminPage() {
         setDonations(donRes.donations);
       }
       if (donSetRes.success && donSetRes.settings) {
-        setDonAboutTitle(donSetRes.settings.aboutTitle || "About Sachin Singh");
-        setDonAboutText(donSetRes.settings.aboutText || "");
         setDonQrImage(donSetRes.settings.qrImage || "/images/payment-qr.png");
         if (Array.isArray(donSetRes.settings.quickAmounts)) {
           setDonQuickAmounts(donSetRes.settings.quickAmounts.join(", "));
@@ -787,31 +781,11 @@ export default function AdminPage() {
   };
 
   // Donations Handlers
-  const handleToggleDonationStatus = async (id: string, currentStatus: "pending" | "published") => {
-    const nextStatus = currentStatus === "published" ? "pending" : "published";
-    try {
-      const res = await fetch(`/api/admin/donations/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDonations((prev) =>
-          prev.map((d) => (d._id === id ? { ...d, status: nextStatus } : d))
-        );
-      }
-    } catch (err) {
-      console.error("Error toggling donation status:", err);
-    }
-  };
-
   const handleOpenEditDonation = (item: DonationItem) => {
     setEditingDonation(item);
     setEditDonationName(item.name);
     setEditDonationAmount(String(item.amount));
     setEditDonationMessage(item.message || "");
-    setEditDonationStatus(item.status);
     setDonationMsg(null);
   };
 
@@ -827,7 +801,6 @@ export default function AdminPage() {
           name: editDonationName.trim(),
           amount: Number(editDonationAmount),
           message: editDonationMessage.trim(),
-          status: editDonationStatus,
         }),
       });
       const data = await res.json();
@@ -876,8 +849,6 @@ export default function AdminPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          aboutTitle: donAboutTitle.trim(),
-          aboutText: donAboutText.trim(),
           qrImage: donQrImage.trim(),
           quickAmounts: parsedQuickAmounts,
         }),
@@ -885,7 +856,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (data.success) {
-        setDonSettingsMsg("Donation settings & QR image updated successfully!");
+        setDonSettingsMsg("Payment settings & QR image updated successfully!");
         setTimeout(() => setDonSettingsMsg(null), 3500);
       }
     } catch (err) {
@@ -895,6 +866,7 @@ export default function AdminPage() {
       setDonSettingsSaving(false);
     }
   };
+
 
   // ================= LOGIN SCREEN =================
   if (!isAuthenticated) {
@@ -1920,23 +1892,20 @@ export default function AdminPage() {
         {/* ================= TAB 5: SUPPORTERS & DONATIONS MANAGER ================= */}
         {activeTab === "donations" && (() => {
           const totalRaised = donations.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-          const publishedCount = donations.filter((d) => d.status === "published").length;
-          const pendingCount = donations.filter((d) => d.status === "pending").length;
+          const avgAmount = donations.length > 0 ? Math.round(totalRaised / donations.length) : 0;
 
           const filteredList = donations.filter((d) => {
-            const matchesStatus =
-              donationFilter === "all" || d.status === donationFilter;
-            const matchesQuery =
+            return (
               !donationSearchQuery.trim() ||
               d.name.toLowerCase().includes(donationSearchQuery.toLowerCase()) ||
-              (d.message && d.message.toLowerCase().includes(donationSearchQuery.toLowerCase()));
-            return matchesStatus && matchesQuery;
+              (d.message && d.message.toLowerCase().includes(donationSearchQuery.toLowerCase()))
+            );
           });
 
           return (
             <div className="space-y-6">
               {/* Summary Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Contributions</span>
                   <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
@@ -1952,21 +1921,9 @@ export default function AdminPage() {
                 </div>
 
                 <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Published Live</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Average Contribution</span>
                   <div className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 font-mono mt-0.5">
-                    {publishedCount}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pending Approval</span>
-                  <div className="text-xl sm:text-2xl font-black text-amber-500 font-mono mt-0.5 flex items-center gap-1.5">
-                    {pendingCount}
-                    {pendingCount > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold">
-                        Needs Action
-                      </span>
-                    )}
+                    ₹{avgAmount.toLocaleString("en-IN")}
                   </div>
                 </div>
               </div>
@@ -1982,7 +1939,7 @@ export default function AdminPage() {
                         Supporter Contributions ({filteredList.length})
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Review, approve, or edit entries submitted from the /support page.
+                        View, search, edit, or remove supporter entries.
                       </p>
                     </div>
 
@@ -1995,42 +1952,24 @@ export default function AdminPage() {
                     </Link>
                   </div>
 
-                  {/* Filter & Search Bar */}
-                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        type="text"
-                        placeholder="Search supporter by name or message..."
-                        value={donationSearchQuery}
-                        onChange={(e) => setDonationSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                      />
-                      {donationSearchQuery && (
-                        <button
-                          onClick={() => setDonationSearchQuery("")}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
-                      {(["all", "published", "pending"] as const).map((st) => (
-                        <button
-                          key={st}
-                          onClick={() => setDonationFilter(st)}
-                          className={`px-3 py-1 text-xs font-bold rounded-lg capitalize transition-colors ${
-                            donationFilter === st
-                              ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
-                              : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                          }`}
-                        >
-                          {st} ({st === "all" ? donations.length : st === "published" ? publishedCount : pendingCount})
-                        </button>
-                      ))}
-                    </div>
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search supporter by name or message..."
+                      value={donationSearchQuery}
+                      onChange={(e) => setDonationSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                    {donationSearchQuery && (
+                      <button
+                        onClick={() => setDonationSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Entries List */}
@@ -2052,15 +1991,6 @@ export default function AdminPage() {
                               </h4>
                               <span className="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
                                 ₹{Number(item.amount).toLocaleString("en-IN")}
-                              </span>
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                                  item.status === "published"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                }`}
-                              >
-                                {item.status === "published" ? "Live" : "Pending Confirmation"}
                               </span>
                             </div>
 
@@ -2084,32 +2014,21 @@ export default function AdminPage() {
                           {/* Actions */}
                           <div className="flex items-center gap-1.5 shrink-0 pt-2 sm:pt-0 border-t border-slate-200/60 dark:border-slate-800/60 sm:border-t-0">
                             <button
-                              onClick={() => handleToggleDonationStatus(item._id, item.status)}
-                              className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-colors flex items-center gap-1 ${
-                                item.status === "pending"
-                                  ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600 shadow-sm"
-                                  : "bg-slate-200 dark:bg-slate-800 hover:bg-amber-500/20 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700"
-                              }`}
-                              title={item.status === "pending" ? "Approve and publish" : "Unpublish to pending"}
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>{item.status === "pending" ? "Approve" : "To Pending"}</span>
-                            </button>
-
-                            <button
                               onClick={() => handleOpenEditDonation(item)}
-                              className="p-1.5 text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 border border-sky-500/30 rounded-lg transition-colors"
+                              className="px-2.5 py-1.5 text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 border border-sky-500/30 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold"
                               title="Edit supporter details"
                             >
                               <Pencil className="w-3.5 h-3.5" />
+                              <span>Edit</span>
                             </button>
 
                             <button
                               onClick={() => handleDeleteDonation(item._id)}
-                              className="p-1.5 text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-colors"
+                              className="px-2.5 py-1.5 text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold"
                               title="Delete entry"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
                             </button>
                           </div>
                         </div>
@@ -2123,10 +2042,10 @@ export default function AdminPage() {
                   <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <Save className="w-4 h-4 text-sky-500" />
-                      Donation Page Configuration
+                      Payment & QR Settings
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Update the text and UPI QR code shown on /support.
+                      Configure your UPI QR code and suggested preset amounts on /support.
                     </p>
                   </div>
 
@@ -2138,30 +2057,6 @@ export default function AdminPage() {
                   )}
 
                   <form onSubmit={handleSaveDonationSettings} className="space-y-4 text-xs">
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 dark:text-slate-300">
-                        About Title
-                      </label>
-                      <input
-                        type="text"
-                        value={donAboutTitle}
-                        onChange={(e) => setDonAboutTitle(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 dark:text-slate-300">
-                        About Bio & Community Message
-                      </label>
-                      <textarea
-                        value={donAboutText}
-                        onChange={(e) => setDonAboutText(e.target.value)}
-                        rows={4}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 leading-relaxed"
-                      />
-                    </div>
-
                     <div className="space-y-1">
                       <label className="font-semibold text-slate-700 dark:text-slate-300">
                         UPI QR Code Image Path or Cloudinary URL
@@ -2200,7 +2095,7 @@ export default function AdminPage() {
                       disabled={donSettingsSaving}
                       className="w-full py-2.5 text-xs font-bold text-white bg-sky-500 hover:bg-sky-400 rounded-xl shadow-md transition-all disabled:opacity-50"
                     >
-                      {donSettingsSaving ? "Saving Settings..." : "Save Donation Settings"}
+                      {donSettingsSaving ? "Saving Settings..." : "Save Payment Settings"}
                     </button>
                   </form>
                 </div>
@@ -2719,17 +2614,6 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700 dark:text-slate-300">Publication Status</label>
-                <select
-                  value={editDonationStatus}
-                  onChange={(e) => setEditDonationStatus(e.target.value as "pending" | "published")}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
-                >
-                  <option value="published">Published (Visible on /supporters)</option>
-                  <option value="pending">Pending Confirmation</option>
-                </select>
-              </div>
 
               <div className="pt-2 flex items-center justify-end gap-2.5">
                 <button

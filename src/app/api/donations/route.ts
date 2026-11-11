@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       name,
       message,
       amount,
-      status: "pending",
+      status: "published",
     });
 
     return NextResponse.json(
