@@ -17,6 +17,7 @@ export default function Navbar() {
     { name: "Home", href: "/" },
     { name: "Video Library", href: "/videos" },
     { name: "Study Notes", href: "/notes" },
+    { name: "Support ☕", href: "/support" },
     { name: "About SacWac", href: "/about" },
     { name: "Contact Us", href: "/contact" },
   ];

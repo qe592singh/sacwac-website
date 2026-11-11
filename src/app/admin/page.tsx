@@ -36,11 +36,22 @@ import {
   Filter,
   UploadCloud,
   FileText,
-  Pencil
+  Pencil,
+  Coffee,
 } from "lucide-react";
 
 interface EnrichedPlaylist extends Playlist {
   videos: Video[];
+}
+
+interface DonationItem {
+  _id: string;
+  name: string;
+  message?: string;
+  amount: number;
+  status: "pending" | "published";
+  confirmedAt?: string;
+  createdAt: string;
 }
 
 const VIDEO_CATEGORIES: Video["category"][] = [
@@ -64,12 +75,31 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // Active Admin Tab
-  const [activeTab, setActiveTab] = useState<"videos" | "playlists" | "notes" | "profile">("videos");
+  const [activeTab, setActiveTab] = useState<"videos" | "playlists" | "notes" | "donations" | "profile">("videos");
 
   // Data lists
   const [videos, setVideos] = useState<Video[]>([]);
   const [playlists, setPlaylists] = useState<EnrichedPlaylist[]>([]);
   const [notes, setNotes] = useState<NoteDoc[]>([]);
+  const [donations, setDonations] = useState<DonationItem[]>([]);
+
+  // Donation tab state
+  const [donationFilter, setDonationFilter] = useState<"all" | "published" | "pending">("all");
+  const [donationSearchQuery, setDonationSearchQuery] = useState("");
+  const [editingDonation, setEditingDonation] = useState<DonationItem | null>(null);
+  const [editDonationName, setEditDonationName] = useState("");
+  const [editDonationAmount, setEditDonationAmount] = useState("");
+  const [editDonationMessage, setEditDonationMessage] = useState("");
+  const [editDonationStatus, setEditDonationStatus] = useState<"pending" | "published">("published");
+  const [donationMsg, setDonationMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Donation Settings state
+  const [donAboutTitle, setDonAboutTitle] = useState("About Sachin Singh");
+  const [donAboutText, setDonAboutText] = useState("");
+  const [donQrImage, setDonQrImage] = useState("/images/payment-qr.png");
+  const [donQuickAmounts, setDonQuickAmounts] = useState("500, 1000, 2500, 5000");
+  const [donSettingsSaving, setDonSettingsSaving] = useState(false);
+  const [donSettingsMsg, setDonSettingsMsg] = useState<string | null>(null);
 
   // Video search filter
   const [videoSearchQuery, setVideoSearchQuery] = useState("");
@@ -187,11 +217,13 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [vRes, pRes, nRes, prRes] = await Promise.all([
+      const [vRes, pRes, nRes, prRes, donRes, donSetRes] = await Promise.all([
         fetch("/api/videos").then((r) => r.json()),
         fetch("/api/playlists").then((r) => r.json()),
         fetch("/api/notes").then((r) => r.json()),
         fetch("/api/admin/profile").then((r) => r.json()),
+        fetch("/api/admin/donations").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("/api/donations/settings").then((r) => r.json()).catch(() => ({ success: false })),
       ]);
 
       if (vRes.success) setVideos(vRes.videos);
@@ -212,6 +244,17 @@ export default function AdminPage() {
         setProfileTopmate(prRes.profile.topmateUrl || "https://topmate.io/sacwac");
         setProfileEmail(prRes.profile.email || "sacwacsalesforce@gmail.com");
         setProfileWorkEmail(prRes.profile.workEmail || "sacwac.work@gmail.com");
+      }
+      if (donRes.success && Array.isArray(donRes.donations)) {
+        setDonations(donRes.donations);
+      }
+      if (donSetRes.success && donSetRes.settings) {
+        setDonAboutTitle(donSetRes.settings.aboutTitle || "About Sachin Singh");
+        setDonAboutText(donSetRes.settings.aboutText || "");
+        setDonQrImage(donSetRes.settings.qrImage || "/images/payment-qr.png");
+        if (Array.isArray(donSetRes.settings.quickAmounts)) {
+          setDonQuickAmounts(donSetRes.settings.quickAmounts.join(", "));
+        }
       }
     } catch (err) {
       console.error("Error loading admin data:", err);
@@ -743,6 +786,116 @@ export default function AdminPage() {
     }
   };
 
+  // Donations Handlers
+  const handleToggleDonationStatus = async (id: string, currentStatus: "pending" | "published") => {
+    const nextStatus = currentStatus === "published" ? "pending" : "published";
+    try {
+      const res = await fetch(`/api/admin/donations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDonations((prev) =>
+          prev.map((d) => (d._id === id ? { ...d, status: nextStatus } : d))
+        );
+      }
+    } catch (err) {
+      console.error("Error toggling donation status:", err);
+    }
+  };
+
+  const handleOpenEditDonation = (item: DonationItem) => {
+    setEditingDonation(item);
+    setEditDonationName(item.name);
+    setEditDonationAmount(String(item.amount));
+    setEditDonationMessage(item.message || "");
+    setEditDonationStatus(item.status);
+    setDonationMsg(null);
+  };
+
+  const handleSaveEditDonation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDonation) return;
+
+    try {
+      const res = await fetch(`/api/admin/donations/${editingDonation._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editDonationName.trim(),
+          amount: Number(editDonationAmount),
+          message: editDonationMessage.trim(),
+          status: editDonationStatus,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to update supporter entry");
+      }
+
+      setDonations((prev) =>
+        prev.map((d) => (d._id === editingDonation._id ? data.donation : d))
+      );
+      setDonationMsg({ type: "success", text: "Supporter entry updated successfully!" });
+      setTimeout(() => {
+        setEditingDonation(null);
+      }, 700);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update";
+      setDonationMsg({ type: "error", text: msg });
+    }
+  };
+
+  const handleDeleteDonation = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this supporter entry?")) return;
+    try {
+      const res = await fetch(`/api/admin/donations/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setDonations((prev) => prev.filter((d) => d._id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting donation:", err);
+    }
+  };
+
+  const handleSaveDonationSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDonSettingsSaving(true);
+    setDonSettingsMsg(null);
+
+    const parsedQuickAmounts = donQuickAmounts
+      .split(",")
+      .map((a) => Number(a.trim()))
+      .filter((n) => !isNaN(n) && n > 0);
+
+    try {
+      const res = await fetch("/api/donations/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aboutTitle: donAboutTitle.trim(),
+          aboutText: donAboutText.trim(),
+          qrImage: donQrImage.trim(),
+          quickAmounts: parsedQuickAmounts,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setDonSettingsMsg("Donation settings & QR image updated successfully!");
+        setTimeout(() => setDonSettingsMsg(null), 3500);
+      }
+    } catch (err) {
+      console.error("Error saving donation settings:", err);
+      setDonSettingsMsg("Failed to save settings");
+    } finally {
+      setDonSettingsSaving(false);
+    }
+  };
+
   // ================= LOGIN SCREEN =================
   if (!isAuthenticated) {
     return (
@@ -913,6 +1066,21 @@ export default function AdminPage() {
           >
             <BookOpen className="w-4 h-4" />
             Study Notes ({notes.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("donations")}
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition-all ${
+              activeTab === "donations"
+                ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Coffee className="w-4 h-4 text-amber-500" />
+            Supporters & Donations ({donations.length})
+            {donations.filter((d) => d.status === "pending").length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Pending entries awaiting approval" />
+            )}
           </button>
 
           <button
@@ -1748,6 +1916,298 @@ export default function AdminPage() {
             </form>
           </div>
         )}
+
+        {/* ================= TAB 5: SUPPORTERS & DONATIONS MANAGER ================= */}
+        {activeTab === "donations" && (() => {
+          const totalRaised = donations.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+          const publishedCount = donations.filter((d) => d.status === "published").length;
+          const pendingCount = donations.filter((d) => d.status === "pending").length;
+
+          const filteredList = donations.filter((d) => {
+            const matchesStatus =
+              donationFilter === "all" || d.status === donationFilter;
+            const matchesQuery =
+              !donationSearchQuery.trim() ||
+              d.name.toLowerCase().includes(donationSearchQuery.toLowerCase()) ||
+              (d.message && d.message.toLowerCase().includes(donationSearchQuery.toLowerCase()));
+            return matchesStatus && matchesQuery;
+          });
+
+          return (
+            <div className="space-y-6">
+              {/* Summary Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Contributions</span>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+                    ₹{totalRaised.toLocaleString("en-IN")}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Supporters</span>
+                  <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono mt-0.5">
+                    {donations.length}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Published Live</span>
+                  <div className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 font-mono mt-0.5">
+                    {publishedCount}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pending Approval</span>
+                  <div className="text-xl sm:text-2xl font-black text-amber-500 font-mono mt-0.5 flex items-center gap-1.5">
+                    {pendingCount}
+                    {pendingCount > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold">
+                        Needs Action
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Grid: Left side Supporter List, Right side Donation Page Settings */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Supporter Entries Table */}
+                <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Coffee className="w-4 h-4 text-amber-500" />
+                        Supporter Contributions ({filteredList.length})
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Review, approve, or edit entries submitted from the /support page.
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/supporters"
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors self-start sm:self-auto"
+                    >
+                      View Live Hall of Fame <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+
+                  {/* Filter & Search Bar */}
+                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search supporter by name or message..."
+                        value={donationSearchQuery}
+                        onChange={(e) => setDonationSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      />
+                      {donationSearchQuery && (
+                        <button
+                          onClick={() => setDonationSearchQuery("")}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                      {(["all", "published", "pending"] as const).map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => setDonationFilter(st)}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg capitalize transition-colors ${
+                            donationFilter === st
+                              ? "bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm"
+                              : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                          }`}
+                        >
+                          {st} ({st === "all" ? donations.length : st === "published" ? publishedCount : pendingCount})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Entries List */}
+                  {filteredList.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                      No supporter records found.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {filteredList.map((item) => (
+                        <div
+                          key={item._id}
+                          className="p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                        >
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                                {item.name}
+                              </h4>
+                              <span className="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                                ₹{Number(item.amount).toLocaleString("en-IN")}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                                  item.status === "published"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                }`}
+                              >
+                                {item.status === "published" ? "Live" : "Pending Confirmation"}
+                              </span>
+                            </div>
+
+                            {item.message && (
+                              <p className="text-xs text-slate-600 dark:text-slate-300 italic">
+                                &ldquo;{item.message}&rdquo;
+                              </p>
+                            )}
+
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              {new Date(item.createdAt).toLocaleString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1.5 shrink-0 pt-2 sm:pt-0 border-t border-slate-200/60 dark:border-slate-800/60 sm:border-t-0">
+                            <button
+                              onClick={() => handleToggleDonationStatus(item._id, item.status)}
+                              className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-colors flex items-center gap-1 ${
+                                item.status === "pending"
+                                  ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600 shadow-sm"
+                                  : "bg-slate-200 dark:bg-slate-800 hover:bg-amber-500/20 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700"
+                              }`}
+                              title={item.status === "pending" ? "Approve and publish" : "Unpublish to pending"}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{item.status === "pending" ? "Approve" : "To Pending"}</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleOpenEditDonation(item)}
+                              className="p-1.5 text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 border border-sky-500/30 rounded-lg transition-colors"
+                              title="Edit supporter details"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteDonation(item._id)}
+                              className="p-1.5 text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-colors"
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Donation Page Settings Form */}
+                <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm h-fit">
+                  <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Save className="w-4 h-4 text-sky-500" />
+                      Donation Page Configuration
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Update the text and UPI QR code shown on /support.
+                    </p>
+                  </div>
+
+                  {donSettingsMsg && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>{donSettingsMsg}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveDonationSettings} className="space-y-4 text-xs">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        About Title
+                      </label>
+                      <input
+                        type="text"
+                        value={donAboutTitle}
+                        onChange={(e) => setDonAboutTitle(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        About Bio & Community Message
+                      </label>
+                      <textarea
+                        value={donAboutText}
+                        onChange={(e) => setDonAboutText(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        UPI QR Code Image Path or Cloudinary URL
+                      </label>
+                      <input
+                        type="text"
+                        value={donQrImage}
+                        onChange={(e) => setDonQrImage(e.target.value)}
+                        placeholder="/images/payment-qr.png"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                      <div className="pt-2 flex items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <img
+                          src={donQrImage || "/images/payment-qr.png"}
+                          alt="QR Preview"
+                          className="w-24 h-24 object-contain rounded-lg border border-slate-300 dark:border-slate-700 bg-white p-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        Quick Preset Amounts (Comma Separated in ₹)
+                      </label>
+                      <input
+                        type="text"
+                        value={donQuickAmounts}
+                        onChange={(e) => setDonQuickAmounts(e.target.value)}
+                        placeholder="500, 1000, 2500, 5000"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={donSettingsSaving}
+                      className="w-full py-2.5 text-xs font-bold text-white bg-sky-500 hover:bg-sky-400 rounded-xl shadow-md transition-all disabled:opacity-50"
+                    >
+                      {donSettingsSaving ? "Saving Settings..." : "Save Donation Settings"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </main>
 
       {/* ================= MODAL: ADD YOUTUBE VIDEO ================= */}
@@ -2183,6 +2643,107 @@ export default function AdminPage() {
                   className="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-sky-600 hover:from-emerald-400 hover:to-sky-500 rounded-xl shadow-md transition-all disabled:opacity-50"
                 >
                   {editSubmitting ? "Saving Changes..." : "Save Video & Notes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: EDIT SUPPORTER ENTRY ================= */}
+      {editingDonation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500">
+                  <Coffee className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Edit Supporter Entry</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Update supporter name, amount, or message.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingDonation(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {donationMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  donationMsg.type === "success"
+                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                    : "bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400"
+                }`}
+              >
+                {donationMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEditDonation} className="space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Supporter Name</label>
+                <input
+                  type="text"
+                  value={editDonationName}
+                  onChange={(e) => setEditDonationName(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Amount (₹)</label>
+                <input
+                  type="number"
+                  value={editDonationAmount}
+                  onChange={(e) => setEditDonationAmount(e.target.value)}
+                  required
+                  min={1}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Message (Optional)</label>
+                <textarea
+                  value={editDonationMessage}
+                  onChange={(e) => setEditDonationMessage(e.target.value)}
+                  rows={2}
+                  maxLength={300}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Publication Status</label>
+                <select
+                  value={editDonationStatus}
+                  onChange={(e) => setEditDonationStatus(e.target.value as "pending" | "published")}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white"
+                >
+                  <option value="published">Published (Visible on /supporters)</option>
+                  <option value="pending">Pending Confirmation</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEditingDonation(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-white bg-slate-100 dark:bg-slate-800 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-sky-500 hover:bg-sky-400 rounded-xl shadow-md"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

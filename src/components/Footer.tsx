@@ -83,6 +83,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/support" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                  <span>☕</span> Support Sachin (Buy Coffee)
+                </Link>
+              </li>
+              <li>
+                <Link href="/supporters" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+                  Community Supporters
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
                   About SacWac & Sachin Singh
                 </Link>
