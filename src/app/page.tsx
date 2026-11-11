@@ -131,7 +131,7 @@ export default function HomePage() {
                   className="px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900/90 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                 >
                   <BookOpen className="w-4 h-4 text-sky-500" />
-                  Protected Study Notes
+                  Study Notes
                 </Link>
               </div>
 
@@ -367,10 +367,10 @@ export default function HomePage() {
                   <ShieldCheck className="w-3.5 h-3.5" /> Architecture Notes
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  Protected Online Knowledge Base
+                  Online Knowledge Base
                 </h2>
                 <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
-                  High-yield study guides created by Sachin Singh, accessible in our download-protected viewer.
+                  High-yield study guides created by Sachin Singh, accessible in our online viewer.
                 </p>
               </div>
 

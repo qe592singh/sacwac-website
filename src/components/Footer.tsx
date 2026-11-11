@@ -79,7 +79,7 @@ export default function Footer() {
               <li>
                 <Link href="/notes" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                  Protected Study Notes
+                  Study Notes
                 </Link>
               </li>
               <li>

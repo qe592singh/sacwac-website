@@ -21,7 +21,6 @@ import {
   Play,
   X,
   AlertTriangle,
-  Lock
 } from "lucide-react";
 
 interface EnrichedPlaylist extends Playlist {
@@ -225,13 +224,8 @@ export default function NotesPage() {
             </p>
           </div>
 
-          {/* Protection & Count Badges */}
+          {/* Guide Count Badge */}
           <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
-            <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center gap-1.5 shadow-sm">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Anti-Copy Protected</span>
-            </span>
-
             <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-sm flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 text-emerald-500" />
               <span>{notes.length} Total Study Guides</span>
