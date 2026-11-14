@@ -36,6 +36,8 @@ const YOUTUBE_HEADERS = {
   Cookie: "SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg; CONSENT=YES+cb.20210328-17-p0.en+FX+478",
 };
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawId = searchParams.get("id") || searchParams.get("url") || "";
@@ -105,20 +107,23 @@ export async function GET(request: Request) {
         const tags = Array.isArray(details.keywords) ? details.keywords : [];
         const category = detectCategory(details.title, details.shortDescription || "", tags);
 
-        return NextResponse.json({
-          success: true,
-          id,
-          title: details.title,
-          description: details.shortDescription || "",
-          duration: durationStr,
-          views: viewCount,
-          viewsText: `${viewCount.toLocaleString()} views`,
-          thumbnailUrl: getYoutubeThumbnail(id),
-          episode: ep,
-          suggestedCategory: category,
-          tags,
-          source: "watch_page",
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            id,
+            title: details.title,
+            description: details.shortDescription || "",
+            duration: durationStr,
+            views: viewCount,
+            viewsText: `${viewCount.toLocaleString()} views`,
+            thumbnailUrl: getYoutubeThumbnail(id),
+            episode: ep,
+            suggestedCategory: category,
+            tags,
+            source: "watch_page",
+          },
+          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+        );
       }
     }
   } catch (err) {
@@ -157,20 +162,23 @@ export async function GET(request: Request) {
         const tags = Array.isArray(details.keywords) ? details.keywords : [];
         const category = detectCategory(details.title, details.shortDescription || "", tags);
 
-        return NextResponse.json({
-          success: true,
-          id,
-          title: details.title,
-          description: details.shortDescription || "",
-          duration: durationStr,
-          views: viewCount,
-          viewsText: `${viewCount.toLocaleString()} views`,
-          thumbnailUrl: getYoutubeThumbnail(id),
-          episode: ep,
-          suggestedCategory: category,
-          tags,
-          source: "innertube",
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            id,
+            title: details.title,
+            description: details.shortDescription || "",
+            duration: durationStr,
+            views: viewCount,
+            viewsText: `${viewCount.toLocaleString()} views`,
+            thumbnailUrl: getYoutubeThumbnail(id),
+            episode: ep,
+            suggestedCategory: category,
+            tags,
+            source: "innertube",
+          },
+          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+        );
       }
     }
   } catch (err) {
