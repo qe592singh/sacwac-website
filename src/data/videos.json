@@ -1,5 +1,28 @@
 [
   {
+    "id": "vid-Co__nyS5U9w",
+    "youtubeUrl": "https://youtu.be/Co__nyS5U9w?si=qV1M5hdHlmns2wl3",
+    "youtubeId": "Co__nyS5U9w",
+    "title": "Platform Event-Triggered Flow in Salesforce | Pub/Sub Model | Episode 10",
+    "description": "Salesforce Platform Events Explained | Pub/Sub Model & Event-Triggered Flow\nPlatform Events in Salesforce | Complete Beginner Tutorial | Episode 10\nWhat are Platform Events in Salesforce? | Event-Driven Automation Explained\nSalesforce Flow Tutorial #10 | Platform Event-Triggered Flow\nPlatform Events & Event Bus in Salesforce | Pub/Sub Architecture Explained\nLearn Platform Events in Salesforce | Publisher, Subscriber & Event Bus\n\nWebsite: https://www.sacwac.in\n\n\nWelcome back to the Salesforce Admin Course on SACWAC!\n\nIn this episode, we are going to learn about Platform Events in Salesforce and how they help different systems communicate through an event-driven architecture.\n\nWe will understand what Platform Events are, how the Publish/Subscribe (Pub/Sub) model works, what an Event Bus is, and how Salesforce automatically executes a Platform Event-Triggered Flow whenever a new event message is published.\n\nIf you want to understand Salesforce integrations and asynchronous automation, this is an important concept to learn!\n\n### 📚 What You Will Learn in This Video\n\n✅ What are Platform Events in Salesforce?  \n✅ Difference between Standard/Custom Objects and Platform Events  \n✅ Understanding the __e API suffix  \n✅ Platform Event retention and supported data types  \n✅ What is an Event Bus in Salesforce?  \n✅ Understanding the Publish/Subscribe (Pub/Sub) Model  \n✅ What is a Publisher and Subscriber?  \n✅ What is a Platform Event-Triggered Flow?  \n✅ How Salesforce processes incoming event messages  \n✅ Understanding the $Record global variable  \n✅ What is the Automated Process user?  \n✅ How Platform Events support asynchronous communication  \n✅ Real-world use cases of Platform Events  \n\n🔄 Understanding the Pub/Sub Architecture\n\nPlatform Events follow the Publish/Subscribe architecture, which consists of three important components:\n\n1. Publisher: The system or application that publishes an event message. It can be Salesforce Apex, an external application, or another supported integration.\n2. Event Bus: The communication channel that receives and distributes event messages.\n3. Subscriber: The component that listens for published events, such as a Platform Event-Triggered Flow.\n\nThis architecture allows systems to communicate without depending directly on each other.\n\n🛠️ Real-World Use Cases of Platform Events\n\nPayment confirmation notifications.\nOrder status updates from external applications.\nCommunication between multiple Salesforce orgs.\nExternal system integration.\nAsynchronous business process automation.\nReal-time event notifications.\n\n🎯 Who Should Watch?\n\nSalesforce Admin Beginners\nSalesforce Developers\nSalesforce Integration Developers\nSalesforce Flow Learners\nSalesforce Interview Preparation\nAnyone interested in Event-Driven Architecture\n\n📌 Watch the complete Salesforce Admin Course on SACWAC to learn Salesforce concepts through step-by-step explanations and practical demonstrations.\n\n👍 If you find this video helpful, Like, Share, and Subscribe to SACWAC.\n\n💬 Have questions about Platform Events or Salesforce integrations? Drop them in the comments!\n\n#Salesforce #PlatformEvents #PlatformEventTriggeredFlow #SalesforceFlow #SalesforceIntegration #EventDrivenArchitecture #PubSub #SalesforceAdmin #SalesforceDeveloper #SACWAC",
+    "category": "Flows",
+    "duration": "18:46",
+    "thumbnailUrl": "https://img.youtube.com/vi/Co__nyS5U9w/hqdefault.jpg",
+    "date": "Nov 13, 2026",
+    "episode": 10,
+    "playlistId": "playlist-flows",
+    "featured": false,
+    "tags": [
+      "Flows",
+      "Salesforce",
+      "Automation"
+    ],
+    "difficulty": "Intermediate",
+    "publishedAt": "2026-11-13T15:54:00.148Z",
+    "views": 0,
+    "viewsText": "0 views"
+  },
+  {
     "id": "vid--vqXBSxMIBo",
     "youtubeUrl": "https://www.youtube.com/watch?v=-vqXBSxMIBo",
     "youtubeId": "-vqXBSxMIBo",

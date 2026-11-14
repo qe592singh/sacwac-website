@@ -71,3 +71,17 @@ export function getStoredPlaylists(): Playlist[] {
     return [];
   }
 }
+
+export function saveStoredPlaylists(playlists: Playlist[]): boolean {
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(playlistsFilePath, JSON.stringify(playlists, null, 2), "utf8");
+    return true;
+  } catch (err) {
+    console.error("Error saving playlists file:", err);
+    return false;
+  }
+}
+

@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { VideoModel } from "@/models/Video";
 import { NoteModel } from "@/models/Note";
-import { getStoredVideos, saveStoredVideos, getStoredNotes, saveStoredNotes } from "@/lib/storage";
+import { PlaylistModel } from "@/models/Playlist";
+import {
+  getStoredVideos,
+  saveStoredVideos,
+  getStoredNotes,
+  saveStoredNotes,
+  getStoredPlaylists,
+  saveStoredPlaylists,
+} from "@/lib/storage";
 import { extractYoutubeId, getYoutubeThumbnail } from "@/lib/youtube";
+import { formatVideoDate, getDynamicPlaylistTitle } from "@/lib/formatters";
 import { Video, NoteDoc } from "@/types";
 
 let cachedVideosData: { data: unknown; time: number } | null = null;
@@ -22,7 +31,18 @@ export async function GET() {
     await connectToDatabase();
     const dbVideos = await VideoModel.find().sort({ order: 1, createdAt: -1 }).lean();
     if (dbVideos && dbVideos.length > 0) {
-      const payload = { success: true, videos: dbVideos, source: "mongodb" };
+      const normalized = dbVideos.map((v) => ({
+        ...v,
+        date: formatVideoDate(v.date || v.publishedAt || (v as unknown as { createdAt?: string }).createdAt),
+        publishedAt:
+          v.publishedAt ||
+          ((v as unknown as { createdAt?: Date }).createdAt
+            ? new Date((v as unknown as { createdAt: Date }).createdAt).toISOString()
+            : v.date
+            ? new Date(v.date).toISOString()
+            : new Date().toISOString()),
+      }));
+      const payload = { success: true, videos: normalized, source: "mongodb" };
       cachedVideosData = { data: payload, time: Date.now() };
       return NextResponse.json(payload, {
         headers: {
@@ -35,7 +55,12 @@ export async function GET() {
   }
 
   const videos = getStoredVideos();
-  const localPayload = { success: true, videos, source: "local" };
+  const normalized = videos.map((v) => ({
+    ...v,
+    date: formatVideoDate(v.date || v.publishedAt),
+    publishedAt: v.publishedAt || (v.date ? new Date(v.date).toISOString() : new Date().toISOString()),
+  }));
+  const localPayload = { success: true, videos: normalized, source: "local" };
   cachedVideosData = { data: localPayload, time: Date.now() };
   return NextResponse.json(localPayload, {
     headers: {
@@ -140,6 +165,10 @@ export async function POST(request: Request) {
       saveStoredNotes([newNote, ...currentNotes]);
     }
 
+    const now = new Date();
+    const finalDate = formatVideoDate(body.date || now);
+    const finalPublishedAt = body.publishedAt || now.toISOString();
+
     const newVideo: Video = {
       id: newVideoId,
       youtubeUrl,
@@ -151,7 +180,8 @@ export async function POST(request: Request) {
       category: category || "Admin",
       duration: duration?.trim() || "15:00",
       thumbnailUrl: getYoutubeThumbnail(videoId),
-      date: new Date().toISOString().split("T")[0],
+      date: finalDate,
+      publishedAt: finalPublishedAt,
       tags: Array.isArray(tags) && tags.length > 0 ? tags : ["Salesforce", category || "Tutorial"],
       difficulty: difficulty || "Intermediate",
       featured: false,
@@ -169,13 +199,64 @@ export async function POST(request: Request) {
         ...newVideo,
         order: -1,
       });
+
+      // If video belongs to a playlist, automatically link it and dynamically update the title & count
+      if (playlistId) {
+        const pl = await PlaylistModel.findOne({ id: playlistId });
+        if (pl) {
+          const currentIds: string[] = pl.videoIds || [];
+          if (!currentIds.includes(videoId)) {
+            const updatedIds = [...currentIds, videoId];
+            const updatedTitle = getDynamicPlaylistTitle({
+              id: pl.id,
+              title: pl.title,
+              videoIds: updatedIds,
+              totalEpisodes: updatedIds.length,
+            });
+            await PlaylistModel.updateOne(
+              { id: playlistId },
+              {
+                $addToSet: { videoIds: videoId },
+                $set: {
+                  title: updatedTitle,
+                  totalEpisodes: updatedIds.length,
+                },
+              }
+            );
+          }
+        }
+      }
     } catch (err) {
-      console.error("Error creating video in MongoDB:", err);
+      console.error("Error creating video or updating playlist in MongoDB:", err);
     }
 
     // Also persist local fallback
     const updatedVideos = [newVideo, ...currentVideos];
     saveStoredVideos(updatedVideos);
+
+    // If video belongs to playlist, also update local playlist file
+    if (playlistId) {
+      const storedPls = getStoredPlaylists();
+      const updatedPls = storedPls.map((p) => {
+        if (p.id === playlistId) {
+          const currentIds = p.videoIds || [];
+          const updatedIds = currentIds.includes(videoId) ? currentIds : [...currentIds, videoId];
+          return {
+            ...p,
+            videoIds: updatedIds,
+            totalEpisodes: updatedIds.length,
+            title: getDynamicPlaylistTitle({
+              id: p.id,
+              title: p.title,
+              videoIds: updatedIds,
+              totalEpisodes: updatedIds.length,
+            }),
+          };
+        }
+        return p;
+      });
+      saveStoredPlaylists(updatedPls);
+    }
 
     return NextResponse.json({
       success: true,

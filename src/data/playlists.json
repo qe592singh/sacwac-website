@@ -56,12 +56,12 @@
   },
   {
     "id": "playlist-flows",
-    "title": "Salesforce Flow Builder Complete Course (Episodes 1 - 9)",
+    "title": "Salesforce Flow Builder Complete Course (Episodes 1 - 10)",
     "slug": "salesforce-flows-complete-course",
     "description": "Master Salesforce Flow Builder from the ground up: Before-Save vs After-Save, Screen Flows, Autolaunched, and Schedule-Triggered Flows with real business scenarios.",
     "category": "Flows",
     "level": "Beginner to Advanced",
-    "totalEpisodes": 9,
+    "totalEpisodes": 10,
     "thumbnail": "https://img.youtube.com/vi/zuc9mfc0S6M/hqdefault.jpg",
     "videoIds": [
       "zuc9mfc0S6M",
@@ -72,7 +72,8 @@
       "y7DvhSYerTI",
       "WKTXDO7Di7Y",
       "cVuaIh2Wye8",
-      "-vqXBSxMIBo"
+      "-vqXBSxMIBo",
+      "Co__nyS5U9w"
     ]
   },
   {

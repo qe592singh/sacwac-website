@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import YoutubeIcon from "@/components/YoutubeIcon";
 import { Video, Playlist } from "@/types";
 import { Search, Play, Clock, ArrowRight, ExternalLink, Layers } from "lucide-react";
+import { getVideoTimestamp } from "@/lib/formatters";
 
 interface EnrichedPlaylist extends Playlist {
   videos: Video[];
@@ -45,13 +46,13 @@ export default function VideosPage() {
 
   const sortedVideos = [...filteredVideos].sort((a, b) => {
     if (sortBy === "latest") {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      const dateA = getVideoTimestamp(a);
+      const dateB = getVideoTimestamp(b);
       return dateB - dateA;
     }
     if (sortBy === "oldest") {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      const dateA = getVideoTimestamp(a);
+      const dateB = getVideoTimestamp(b);
       return dateA - dateB;
     }
     if (sortBy === "popular") {

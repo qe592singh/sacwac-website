@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { connectToDatabase } from "@/lib/mongodb";
 import { PlaylistModel } from "@/models/Playlist";
 import { VideoModel } from "@/models/Video";
-import { getStoredPlaylists, getStoredVideos } from "@/lib/storage";
+import { getStoredPlaylists, saveStoredPlaylists, getStoredVideos } from "@/lib/storage";
+import { getDynamicPlaylistTitle } from "@/lib/formatters";
 import { Playlist } from "@/types";
-
-const playlistsFilePath = path.join(process.cwd(), "src", "data", "playlists.json");
 
 let cachedPlaylistsData: { data: unknown; time: number } | null = null;
 const CACHE_TTL_MS = 30 * 1000;
@@ -31,19 +28,28 @@ export async function GET() {
       .lean();
 
     if (dbPlaylists && dbPlaylists.length > 0) {
-      // Ensure each playlist's videos array is mapped properly
-      const formatted = dbPlaylists.map((p) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        description: p.description,
-        category: p.category,
-        level: p.level,
-        totalEpisodes: p.totalEpisodes || (p.videos ? p.videos.length : 0),
-        thumbnail: p.thumbnail,
-        videoIds: p.videoIds || [],
-        videos: p.videos || [],
-      }));
+      // Ensure each playlist's videos array is mapped properly and title is dynamic
+      const formatted = dbPlaylists.map((p) => {
+        const episodeCount = (p.videoIds && p.videoIds.length) || (p.videos ? p.videos.length : 0) || p.totalEpisodes || 0;
+        return {
+          id: p.id,
+          title: getDynamicPlaylistTitle({
+            id: p.id,
+            title: p.title,
+            videoIds: p.videoIds || [],
+            videos: p.videos || [],
+            totalEpisodes: episodeCount,
+          }),
+          slug: p.slug,
+          description: p.description,
+          category: p.category,
+          level: p.level,
+          totalEpisodes: episodeCount,
+          thumbnail: p.thumbnail,
+          videoIds: p.videoIds || [],
+          videos: p.videos || [],
+        };
+      });
       const payload = { success: true, playlists: formatted, source: "mongodb" };
       cachedPlaylistsData = { data: payload, time: Date.now() };
       return NextResponse.json(payload, {
@@ -64,8 +70,17 @@ export async function GET() {
       .map((vidId) => allVideos.find((v) => v.youtubeId === vidId || v.id === vidId))
       .filter(Boolean);
 
+    const episodeCount = (p.videoIds && p.videoIds.length) || p.totalEpisodes || playlistVideos.length;
+
     return {
       ...p,
+      title: getDynamicPlaylistTitle({
+        id: p.id,
+        title: p.title,
+        videoIds: p.videoIds,
+        totalEpisodes: episodeCount,
+      }),
+      totalEpisodes: episodeCount,
       videos: playlistVideos,
     };
   });
@@ -118,7 +133,7 @@ export async function POST(request: Request) {
     // Also persist local fallback
     const playlists = getStoredPlaylists();
     const updated = [...playlists, newPlaylist];
-    fs.writeFileSync(playlistsFilePath, JSON.stringify(updated, null, 2), "utf8");
+    saveStoredPlaylists(updated);
 
     return NextResponse.json({
       success: true,
@@ -159,9 +174,19 @@ export async function PUT(request: Request) {
 
       const objectIds = videoIds.map((id) => videoMap.get(id)).filter(Boolean);
 
+      const existingPl = await PlaylistModel.findOne({ id: playlistId });
+      const currentTitle = existingPl?.title || "";
+      const updatedTitle = getDynamicPlaylistTitle({
+        id: playlistId,
+        title: currentTitle,
+        videoIds,
+        totalEpisodes: videoIds.length,
+      });
+
       await PlaylistModel.findOneAndUpdate(
         { id: playlistId },
         {
+          title: updatedTitle,
           videoIds,
           videos: objectIds,
           totalEpisodes: videoIds.length,
@@ -175,10 +200,20 @@ export async function PUT(request: Request) {
     const playlists = getStoredPlaylists();
     const updated = playlists.map((p) =>
       p.id === playlistId
-        ? { ...p, videoIds, totalEpisodes: videoIds.length }
+        ? {
+            ...p,
+            videoIds,
+            totalEpisodes: videoIds.length,
+            title: getDynamicPlaylistTitle({
+              id: p.id,
+              title: p.title,
+              videoIds,
+              totalEpisodes: videoIds.length,
+            }),
+          }
         : p
     );
-    fs.writeFileSync(playlistsFilePath, JSON.stringify(updated, null, 2), "utf8");
+    saveStoredPlaylists(updated);
 
     return NextResponse.json({ success: true, message: "Playlist updated successfully in MongoDB!" });
   } catch (error) {
@@ -206,7 +241,7 @@ export async function DELETE(request: Request) {
 
     const playlists = getStoredPlaylists();
     const updated = playlists.filter((p) => p.id !== id);
-    fs.writeFileSync(playlistsFilePath, JSON.stringify(updated, null, 2), "utf8");
+    saveStoredPlaylists(updated);
 
     return NextResponse.json({ success: true, message: "Playlist deleted successfully from MongoDB!" });
   } catch (error) {
@@ -214,3 +249,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, error: "Failed to delete playlist" }, { status: 500 });
   }
 }
+
