@@ -247,11 +247,16 @@ export default function AdminPage() {
   const handleFetchYoutubeInfo = async (id: string) => {
     if (!id) return;
     setFetchingDetails(true);
+    let titleFound = false;
+
     try {
       const res = await fetch(`/api/youtube-info?id=${encodeURIComponent(id)}`);
       const data = await res.json();
       if (data.success) {
-        if (data.title) setVideoTitle(data.title);
+        if (data.title && data.title.trim()) {
+          setVideoTitle(data.title.trim());
+          titleFound = true;
+        }
         if (data.description) setVideoDescription(data.description);
         if (data.duration) setVideoDuration(data.duration);
         if (data.views !== undefined) setVideoViews(data.views);
@@ -261,10 +266,33 @@ export default function AdminPage() {
         if (data.suggestedCategory) setVideoCategory(data.suggestedCategory as Video["category"]);
       }
     } catch (err) {
-      console.error("Error auto-fetching info:", err);
-    } finally {
-      setFetchingDetails(false);
+      console.warn("Server youtube-info error, attempting client fallback:", err);
     }
+
+    // Direct browser oEmbed fallback (runs with user's residential IP & full CORS)
+    if (!titleFound) {
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${id}`)}&format=json`;
+        const oembedRes = await fetch(oembedUrl);
+        if (oembedRes.ok) {
+          const odata = await oembedRes.json();
+          if (odata.title) {
+            setVideoTitle(odata.title);
+            const epMatch = odata.title.match(/(?:Episode|Ep\.?|Lesson|Part|#)\s*(\d+)/i);
+            if (epMatch) setVideoEpisode(epMatch[1]);
+            const lower = odata.title.toLowerCase();
+            if (lower.includes("flow")) setVideoCategory("Flows");
+            else if (lower.includes("security") || lower.includes("mfa") || lower.includes("permission")) setVideoCategory("Security");
+            else if (lower.includes("apex") || lower.includes("trigger")) setVideoCategory("Apex");
+            else if (lower.includes("admin")) setVideoCategory("Admin");
+          }
+        }
+      } catch (clientErr) {
+        console.error("Client oEmbed fallback error:", clientErr);
+      }
+    }
+
+    setFetchingDetails(false);
   };
 
   const fetchData = async () => {
@@ -2954,20 +2982,34 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-slate-700 dark:text-slate-300">YouTube Video URL</label>
                   {fetchingDetails && (
-                    <span className="text-[11px] text-sky-500 flex items-center gap-1 font-medium">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Fetching YouTube info...
+                    <span className="text-[11px] text-sky-500 flex items-center gap-1 font-medium animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Auto-fetching video info...
                     </span>
                   )}
                 </div>
-                <input
-                  type="text"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  required
-                  autoFocus
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                    required
+                    autoFocus
+                    className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
+                  />
+                  {extractedVidId && (
+                    <button
+                      type="button"
+                      onClick={() => handleFetchYoutubeInfo(extractedVidId)}
+                      disabled={fetchingDetails}
+                      className="px-3.5 py-2.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold rounded-xl border border-sky-500/30 flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50"
+                      title="Re-fetch details from YouTube"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${fetchingDetails ? "animate-spin" : ""}`} />
+                      <span>{fetchingDetails ? "Fetching..." : "Auto-Fill"}</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Live Thumbnail & Auto-Fetched Metadata Preview */}
@@ -2986,16 +3028,24 @@ export default function AdminPage() {
                       </span>
                       {fetchingDetails ? (
                         <span className="text-[10px] text-sky-500 flex items-center gap-1 font-medium animate-pulse">
-                          <Loader2 className="w-3 h-3 animate-spin" /> Auto-fetching data from YouTube...
+                          <Loader2 className="w-3 h-3 animate-spin" /> Fetching YouTube details...
+                        </span>
+                      ) : videoTitle ? (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Auto-populated from YouTube
                         </span>
                       ) : (
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Auto-populated
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleFetchYoutubeInfo(extractedVidId)}
+                          className="text-[10px] text-sky-500 hover:underline font-medium flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Click to auto-fill
+                        </button>
                       )}
                     </div>
                     <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                      {videoTitle || "Fetching video title..."}
+                      {videoTitle || (fetchingDetails ? "Fetching video title..." : "Click Auto-Fill or enter title")}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                       <span>Duration: {videoDuration}</span>
