@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
+import https from "https";
 import { extractYoutubeId, getYoutubeThumbnail } from "@/lib/youtube";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function decodeHtmlEntities(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
+}
 
 function formatDuration(lengthSeconds: number): string {
   if (isNaN(lengthSeconds) || lengthSeconds <= 0) return "15:00";
@@ -36,7 +51,91 @@ const YOUTUBE_HEADERS = {
   Cookie: "SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg; CONSENT=YES+cb.20210328-17-p0.en+FX+478",
 };
 
-export const dynamic = "force-dynamic";
+// Safe HTTPS GET helper that avoids Node 18+ undici UND_ERR_HEADERS_OVERFLOW
+function fetchViaHttps(
+  targetUrl: string,
+  headers: Record<string, string>,
+  timeoutMs = 9000,
+  redirects = 0
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (redirects > 3) return reject(new Error("Too many redirects"));
+    const parsed = new URL(targetUrl);
+    const options = {
+      hostname: parsed.hostname,
+      port: parsed.port || 443,
+      path: parsed.pathname + parsed.search,
+      method: "GET",
+      headers,
+    };
+    const req = https.request(options, (res) => {
+      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        const nextUrl = new URL(res.headers.location, targetUrl).toString();
+        return fetchViaHttps(nextUrl, headers, timeoutMs, redirects + 1).then(resolve).catch(reject);
+      }
+      if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+        return reject(new Error(`Status ${res.statusCode}`));
+      }
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => resolve(data));
+    });
+
+    req.on("error", reject);
+    const timer = setTimeout(() => {
+      req.destroy();
+      reject(new Error("Timeout"));
+    }, timeoutMs);
+    req.on("close", () => clearTimeout(timer));
+    req.end();
+  });
+}
+
+// Safe HTTPS POST helper
+function postViaHttps(
+  targetUrl: string,
+  headers: Record<string, string>,
+  body: string,
+  timeoutMs = 8000
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(targetUrl);
+    const options = {
+      hostname: parsed.hostname,
+      port: parsed.port || 443,
+      path: parsed.pathname + parsed.search,
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Length": Buffer.byteLength(body),
+      },
+    };
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(data);
+        } else {
+          reject(new Error(`Status ${res.statusCode}`));
+        }
+      });
+    });
+
+    req.on("error", reject);
+    const timer = setTimeout(() => {
+      req.destroy();
+      reject(new Error("Timeout"));
+    }, timeoutMs);
+    req.on("close", () => clearTimeout(timer));
+    req.write(body);
+    req.end();
+  });
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -58,73 +157,68 @@ export async function GET(request: Request) {
     }
   }
 
-  // Strategy 1: YouTube Watch Page with consent bypass (Fast & reliable on Vercel AWS IPs)
+  // Strategy 1: YouTube Watch Page with consent bypass (Extracts full title, views, duration, description)
   try {
-    const watchRes = await fetch(`https://www.youtube.com/watch?v=${id}`, {
-      headers: YOUTUBE_HEADERS,
-      signal: AbortSignal.timeout(6000),
-    });
+    const html = await fetchViaHttps(`https://www.youtube.com/watch?v=${id}`, YOUTUBE_HEADERS, 9000);
+    let details: {
+      title?: string;
+      lengthSeconds?: string;
+      viewCount?: string;
+      shortDescription?: string;
+      keywords?: string[];
+    } | null = null;
 
-    if (watchRes.ok) {
-      const html = await watchRes.text();
-      let details: {
-        title?: string;
-        lengthSeconds?: string;
-        viewCount?: string;
-        shortDescription?: string;
-        keywords?: string[];
-      } | null = null;
+    const m = html.match(
+      /(?:var\s+|window\[['"]ytInitialPlayerResponse['"]\]\s*=\s*|ytInitialPlayerResponse\s*=\s*)(\{[\s\S]*?\});(?:\s*(?:var\s+|window\[|<\/script>))/
+    );
+    if (m) {
+      try {
+        const parsed = JSON.parse(m[1]);
+        details = parsed.videoDetails;
+      } catch {
+        // ignore
+      }
+    }
 
-      const m = html.match(
-        /(?:var\s+|window\[['"]ytInitialPlayerResponse['"]\]\s*=\s*|ytInitialPlayerResponse\s*=\s*)(\{[\s\S]*?\});(?:\s*(?:var\s+|window\[|<\/script>))/
-      );
-      if (m) {
+    if (!details) {
+      const m2 = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});<\/script>/);
+      if (m2) {
         try {
-          const parsed = JSON.parse(m[1]);
+          const parsed = JSON.parse(m2[1]);
           details = parsed.videoDetails;
         } catch {
           // ignore
         }
       }
+    }
 
-      if (!details) {
-        const m2 = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});<\/script>/);
-        if (m2) {
-          try {
-            const parsed = JSON.parse(m2[1]);
-            details = parsed.videoDetails;
-          } catch {
-            // ignore
-          }
-        }
-      }
+    if (details && details.title) {
+      const cleanTitle = decodeHtmlEntities(details.title);
+      const lengthSeconds = parseInt(details.lengthSeconds || "0", 10);
+      const durationStr = formatDuration(lengthSeconds);
+      const viewCount = parseInt(details.viewCount || "0", 10);
+      const ep = extractEpisodeNumber(cleanTitle);
+      const tags = Array.isArray(details.keywords) ? details.keywords : [];
+      const cleanDesc = details.shortDescription || "";
+      const category = detectCategory(cleanTitle, cleanDesc, tags);
 
-      if (details && details.title) {
-        const lengthSeconds = parseInt(details.lengthSeconds || "0", 10);
-        const durationStr = formatDuration(lengthSeconds);
-        const viewCount = parseInt(details.viewCount || "0", 10);
-        const ep = extractEpisodeNumber(details.title);
-        const tags = Array.isArray(details.keywords) ? details.keywords : [];
-        const category = detectCategory(details.title, details.shortDescription || "", tags);
-
-        return NextResponse.json(
-          {
-            success: true,
-            id,
-            title: details.title,
-            description: details.shortDescription || "",
-            duration: durationStr,
-            views: viewCount,
-            viewsText: `${viewCount.toLocaleString()} views`,
-            thumbnailUrl: getYoutubeThumbnail(id),
-            episode: ep,
-            suggestedCategory: category,
-            tags,
-            source: "watch_page",
-          },
-          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
-        );
-      }
+      return NextResponse.json(
+        {
+          success: true,
+          id,
+          title: cleanTitle,
+          description: cleanDesc,
+          duration: durationStr,
+          views: viewCount,
+          viewsText: `${viewCount.toLocaleString()} views`,
+          thumbnailUrl: getYoutubeThumbnail(id),
+          episode: ep,
+          suggestedCategory: category,
+          tags,
+          source: "watch_page",
+        },
+        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+      );
     }
   } catch (err) {
     console.warn("Watch page scrape failed, trying Innertube:", err);
@@ -132,60 +226,62 @@ export async function GET(request: Request) {
 
   // Strategy 2: YouTube Innertube API with consent cookies
   try {
-    const innerRes = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
-      method: "POST",
-      headers: {
+    const payload = JSON.stringify({
+      videoId: id,
+      context: {
+        client: {
+          clientName: "WEB",
+          clientVersion: "2.20230522.01.00",
+        },
+      },
+    });
+
+    const raw = await postViaHttps(
+      "https://www.youtube.com/youtubei/v1/player?prettyPrint=false",
+      {
         ...YOUTUBE_HEADERS,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        videoId: id,
-        context: {
-          client: {
-            clientName: "WEB",
-            clientVersion: "2.20230522.01.00",
-          },
+      payload,
+      8000
+    );
+
+    const data = JSON.parse(raw);
+    const details = data.videoDetails;
+
+    if (details && details.title) {
+      const cleanTitle = decodeHtmlEntities(details.title);
+      const lengthSeconds = parseInt(details.lengthSeconds || "0", 10);
+      const durationStr = formatDuration(lengthSeconds);
+      const viewCount = parseInt(details.viewCount || "0", 10);
+      const ep = extractEpisodeNumber(cleanTitle);
+      const tags = Array.isArray(details.keywords) ? details.keywords : [];
+      const cleanDesc = details.shortDescription || "";
+      const category = detectCategory(cleanTitle, cleanDesc, tags);
+
+      return NextResponse.json(
+        {
+          success: true,
+          id,
+          title: cleanTitle,
+          description: cleanDesc,
+          duration: durationStr,
+          views: viewCount,
+          viewsText: `${viewCount.toLocaleString()} views`,
+          thumbnailUrl: getYoutubeThumbnail(id),
+          episode: ep,
+          suggestedCategory: category,
+          tags,
+          source: "innertube",
         },
-      }),
-      signal: AbortSignal.timeout(6000),
-    });
-
-    if (innerRes.ok) {
-      const data = await innerRes.json();
-      const details = data.videoDetails;
-
-      if (details && details.title) {
-        const lengthSeconds = parseInt(details.lengthSeconds || "0", 10);
-        const durationStr = formatDuration(lengthSeconds);
-        const viewCount = parseInt(details.viewCount || "0", 10);
-        const ep = extractEpisodeNumber(details.title);
-        const tags = Array.isArray(details.keywords) ? details.keywords : [];
-        const category = detectCategory(details.title, details.shortDescription || "", tags);
-
-        return NextResponse.json(
-          {
-            success: true,
-            id,
-            title: details.title,
-            description: details.shortDescription || "",
-            duration: durationStr,
-            views: viewCount,
-            viewsText: `${viewCount.toLocaleString()} views`,
-            thumbnailUrl: getYoutubeThumbnail(id),
-            episode: ep,
-            suggestedCategory: category,
-            tags,
-            source: "innertube",
-          },
-          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
-        );
-      }
+        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+      );
     }
   } catch (err) {
     console.warn("Innertube failed, trying oEmbed:", err);
   }
 
-  // Strategy 3: YouTube oEmbed with encoded URL
+  // Strategy 3: YouTube oEmbed fallback
   try {
     const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${id}`)}&format=json`;
     const oembedRes = await fetch(oembedUrl, {
@@ -196,13 +292,14 @@ export async function GET(request: Request) {
     if (oembedRes.ok) {
       const odata = await oembedRes.json();
       if (odata && odata.title) {
-        const ep = extractEpisodeNumber(odata.title);
-        const category = detectCategory(odata.title, "");
+        const cleanTitle = decodeHtmlEntities(odata.title);
+        const ep = extractEpisodeNumber(cleanTitle);
+        const category = detectCategory(cleanTitle, "");
 
         return NextResponse.json({
           success: true,
           id,
-          title: odata.title,
+          title: cleanTitle,
           description: "",
           duration: "15:00",
           views: 0,
@@ -226,12 +323,13 @@ export async function GET(request: Request) {
     if (noembedRes.ok) {
       const ndata = await noembedRes.json();
       if (ndata && ndata.title) {
-        const ep = extractEpisodeNumber(ndata.title);
-        const category = detectCategory(ndata.title, "");
+        const cleanTitle = decodeHtmlEntities(ndata.title);
+        const ep = extractEpisodeNumber(cleanTitle);
+        const category = detectCategory(cleanTitle, "");
         return NextResponse.json({
           success: true,
           id,
-          title: ndata.title,
+          title: cleanTitle,
           description: "",
           duration: "15:00",
           views: 0,
