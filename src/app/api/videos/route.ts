@@ -168,6 +168,8 @@ export async function POST(request: Request) {
     const now = new Date();
     const finalDate = formatVideoDate(body.date || now);
     const finalPublishedAt = body.publishedAt || now.toISOString();
+    const viewsCount = typeof body.views === "number" ? body.views : parseInt(body.views || "0", 10) || 0;
+    const viewsFormatted = body.viewsText?.trim() || `${viewsCount.toLocaleString()} views`;
 
     const newVideo: Video = {
       id: newVideoId,
@@ -182,6 +184,8 @@ export async function POST(request: Request) {
       thumbnailUrl: getYoutubeThumbnail(videoId),
       date: finalDate,
       publishedAt: finalPublishedAt,
+      views: viewsCount,
+      viewsText: viewsFormatted,
       tags: Array.isArray(tags) && tags.length > 0 ? tags : ["Salesforce", category || "Tutorial"],
       difficulty: difficulty || "Intermediate",
       featured: false,

@@ -165,6 +165,9 @@ export default function AdminPage() {
   const [videoDuration, setVideoDuration] = useState("20:00");
   const [videoDescription, setVideoDescription] = useState("");
   const [videoEpisode, setVideoEpisode] = useState<string>("");
+  const [videoViews, setVideoViews] = useState<number>(0);
+  const [videoViewsText, setVideoViewsText] = useState<string>("");
+  const [videoTags, setVideoTags] = useState<string[]>([]);
   const [videoNotesPdfUrl, setVideoNotesPdfUrl] = useState("");
   const [videoUploadingNotes, setVideoUploadingNotes] = useState(false);
   const [targetPlaylistId, setTargetPlaylistId] = useState<string>("");
@@ -236,7 +239,7 @@ export default function AdminPage() {
     const id = extractYoutubeId(videoUrl);
     setExtractedVidId(id);
     if (id) {
-      // Auto fetch title, duration and description if empty
+      // Auto fetch title, duration, views, episode, and description
       handleFetchYoutubeInfo(id);
     }
   }, [videoUrl]);
@@ -245,12 +248,17 @@ export default function AdminPage() {
     if (!id) return;
     setFetchingDetails(true);
     try {
-      const res = await fetch(`/api/youtube-info?id=${id}`);
+      const res = await fetch(`/api/youtube-info?id=${encodeURIComponent(id)}`);
       const data = await res.json();
       if (data.success) {
         if (data.title) setVideoTitle(data.title);
         if (data.description) setVideoDescription(data.description);
         if (data.duration) setVideoDuration(data.duration);
+        if (data.views !== undefined) setVideoViews(data.views);
+        if (data.viewsText) setVideoViewsText(data.viewsText);
+        if (Array.isArray(data.tags) && data.tags.length > 0) setVideoTags(data.tags);
+        if (data.episode) setVideoEpisode(data.episode);
+        if (data.suggestedCategory) setVideoCategory(data.suggestedCategory as Video["category"]);
       }
     } catch (err) {
       console.error("Error auto-fetching info:", err);
@@ -402,7 +410,10 @@ export default function AdminPage() {
           title: videoTitle.trim(),
           description: videoDescription.trim() || `Masterclass on ${videoTitle.trim()}`,
           category: videoCategory,
-          duration: videoDuration.trim() || "20:00",
+          duration: videoDuration.trim() || "15:00",
+          views: videoViews,
+          viewsText: videoViewsText.trim() || `${videoViews.toLocaleString()} views`,
+          tags: videoTags.length > 0 ? videoTags : ["Salesforce", videoCategory],
           thumbnailUrl: getYoutubeThumbnail(extractedVidId),
           playlistId: finalPlaylistId || undefined,
           episode: videoEpisode.trim() ? Number(videoEpisode) : undefined,
@@ -437,6 +448,10 @@ export default function AdminPage() {
         setVideoUrl("");
         setVideoTitle("");
         setVideoDescription("");
+        setVideoDuration("20:00");
+        setVideoViews(0);
+        setVideoViewsText("");
+        setVideoTags([]);
         setVideoEpisode("");
         setVideoNotesPdfUrl("");
         setTargetPlaylistId("");
@@ -2955,7 +2970,7 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* Live Thumbnail Preview */}
+              {/* Live Thumbnail & Auto-Fetched Metadata Preview */}
               {extractedVidId && (
                 <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center gap-4">
                   <img
@@ -2964,20 +2979,41 @@ export default function AdminPage() {
                     draggable={false}
                     className="w-28 aspect-video object-cover rounded-xl border border-slate-200 dark:border-slate-800 shrink-0"
                   />
-                  <div className="space-y-1 min-w-0">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
-                      Video ID: {extractedVidId}
-                    </span>
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                        Video ID: {extractedVidId}
+                      </span>
+                      {fetchingDetails ? (
+                        <span className="text-[10px] text-sky-500 flex items-center gap-1 font-medium animate-pulse">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Auto-fetching data from YouTube...
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Auto-populated
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                      {videoTitle || "Salesforce Masterclass"}
+                      {videoTitle || "Fetching video title..."}
                     </p>
-                    <p className="text-[11px] text-slate-400">Duration: {videoDuration}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>Duration: {videoDuration}</span>
+                      <span>•</span>
+                      <span>Views: {videoViewsText || `${videoViews} views`}</span>
+                      {videoEpisode && (
+                        <>
+                          <span>•</span>
+                          <span className="text-sky-500 font-semibold">Episode {videoEpisode}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Title & Duration */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Title, Duration & Views */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="sm:col-span-2 space-y-1">
                   <label className="font-semibold text-slate-700 dark:text-slate-300">Title</label>
                   <input
@@ -2995,7 +3031,21 @@ export default function AdminPage() {
                     type="text"
                     value={videoDuration}
                     onChange={(e) => setVideoDuration(e.target.value)}
-                    placeholder="e.g. 21:10"
+                    placeholder="e.g. 18:46"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 dark:text-slate-300">Views</label>
+                  <input
+                    type="text"
+                    value={videoViewsText || (videoViews ? `${videoViews.toLocaleString()} views` : "")}
+                    onChange={(e) => {
+                      setVideoViewsText(e.target.value);
+                      const parsed = parseInt(e.target.value.replace(/[^0-9]/g, ""), 10);
+                      if (!isNaN(parsed)) setVideoViews(parsed);
+                    }}
+                    placeholder="e.g. 58 views"
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 font-mono"
                   />
                 </div>
@@ -3015,6 +3065,8 @@ export default function AdminPage() {
                   <option value="Apex">Apex</option>
                   <option value="Validation Rules">Validation Rules</option>
                   <option value="Scenarios">Scenarios</option>
+                  <option value="Integration">Integration</option>
+                  <option value="General">General</option>
                 </select>
               </div>
 
