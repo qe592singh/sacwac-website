@@ -99,6 +99,7 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
   }
 
   const maxResults = options.maxResults || 30;
+  console.log(`[YouTube Sync] Starting channel sync with playlist: ${uploadsPlaylistId}`);
   const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
 
   const res = await fetch(playlistUrl, { signal: AbortSignal.timeout(10000) });
@@ -143,6 +144,7 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
     }
   }
 
+  console.log(`[YouTube Sync] Found ${newVideoIds.length} new videos to add:`, newVideoIds);
   const addedVideos: Video[] = [];
 
   // Fetch full details for new videos and insert
