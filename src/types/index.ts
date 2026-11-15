@@ -27,7 +27,7 @@ export interface Playlist {
   title: string;
   slug: string;
   description: string;
-  category: "Flows" | "Security" | "Admin" | "General";
+  category: "Flows" | "Security" | "Admin" | "Apex" | "Integration" | "General";
   level: string;
   totalEpisodes: number;
   thumbnail: string;

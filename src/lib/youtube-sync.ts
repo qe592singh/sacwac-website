@@ -4,12 +4,11 @@ import { PlaylistModel } from "@/models/Playlist";
 import {
   getStoredVideos,
   saveStoredVideos,
-  getStoredPlaylists,
   saveStoredPlaylists,
 } from "@/lib/storage";
 import { getYoutubeThumbnail } from "@/lib/youtube";
 import { formatVideoDate, getDynamicPlaylistTitle } from "@/lib/formatters";
-import { Video } from "@/types";
+import { Video, Playlist } from "@/types";
 
 export function parseIsoDuration(iso?: string): string {
   if (!iso || !iso.startsWith("PT")) return "15:00";
@@ -86,19 +85,127 @@ export async function fetchVideoDetailsFromApi(videoId: string, apiKey: string) 
   };
 }
 
+export async function syncYouTubePlaylists(apiKey: string, channelId: string): Promise<Playlist[]> {
+  console.log(`[YouTube Sync] Fetching channel playlists for ${channelId}`);
+  const url = `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&channelId=${channelId}&maxResults=50&key=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) {
+    console.warn("Failed to fetch playlists from YouTube:", res.status);
+    return [];
+  }
+
+  const data = await res.json();
+  const ytPlaylists = data.items || [];
+  const syncedPlaylists: Playlist[] = [];
+
+  for (const item of ytPlaylists) {
+    const rawTitle = item.snippet?.title || "";
+    const ytPlId = item.id;
+    if (!rawTitle || rawTitle.toLowerCase().includes("deleted video")) continue;
+
+    // Fetch all video IDs for this playlist with pagination
+    let videoIds: string[] = [];
+    let pageToken = "";
+    try {
+      do {
+        const pUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${ytPlId}&maxResults=50&pageToken=${pageToken}&key=${apiKey}`;
+        const pRes = await fetch(pUrl, { signal: AbortSignal.timeout(8000) });
+        if (!pRes.ok) break;
+        const pData = await pRes.json();
+        if (pData.items) {
+          const ids = pData.items
+            .map((it: { contentDetails?: { videoId?: string } }) => it.contentDetails?.videoId)
+            .filter((id: string | undefined): id is string => Boolean(id));
+          videoIds = videoIds.concat(ids);
+        }
+        pageToken = pData.nextPageToken || "";
+      } while (pageToken);
+    } catch (err) {
+      console.warn(`Error fetching items for playlist ${ytPlId}:`, err);
+    }
+
+    if (videoIds.length === 0) continue;
+
+    // Map known playlists to stable IDs so existing URLs don't break
+    let plId = `playlist-${ytPlId}`;
+    let cat: Playlist["category"] = "General";
+    let level = "Beginner to Advanced";
+    const lower = rawTitle.toLowerCase();
+
+    if (ytPlId === "PLTIllWXwXDP8" || lower.includes("flow")) {
+      plId = "playlist-flows";
+      cat = "Flows";
+      level = "Beginner to Advanced";
+    } else if (ytPlId === "PLQysHSU2Axfo" || lower.includes("security")) {
+      plId = "playlist-security";
+      cat = "Security";
+      level = "Intermediate to Advanced";
+    } else if (ytPlId === "PLcGu3X7SBqX0" || lower.includes("administrator") || lower.includes("admin")) {
+      plId = "playlist-admin";
+      cat = "Admin";
+      level = "Beginner to Advanced";
+    } else if (lower.includes("apex")) {
+      const cleanSlug = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      plId = `playlist-${cleanSlug}`;
+      cat = "Apex";
+      level = "Intermediate to Advanced";
+    } else if (lower.includes("integration") || lower.includes("client app")) {
+      const cleanSlug = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      plId = `playlist-${cleanSlug}`;
+      cat = "Integration";
+      level = "Advanced";
+    } else {
+      const cleanSlug = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      plId = `playlist-${cleanSlug}`;
+      cat = "General";
+      level = "All Levels";
+    }
+
+    const slug = plId.replace(/^playlist-/, "") || ytPlId;
+    const thumbnail =
+      item.snippet?.thumbnails?.high?.url ||
+      item.snippet?.thumbnails?.medium?.url ||
+      `https://img.youtube.com/vi/${videoIds[0]}/hqdefault.jpg`;
+
+    const description =
+      item.snippet?.description?.trim() ||
+      `Complete ${rawTitle} course playlist by Sachin Singh on SacWac.`;
+
+    const dynamicTitle = getDynamicPlaylistTitle({
+      id: plId,
+      title: rawTitle,
+      videoIds,
+      totalEpisodes: videoIds.length,
+    });
+
+    syncedPlaylists.push({
+      id: plId,
+      title: dynamicTitle,
+      slug,
+      description,
+      category: cat,
+      level,
+      totalEpisodes: videoIds.length,
+      thumbnail,
+      videoIds,
+    });
+  }
+
+  return syncedPlaylists;
+}
+
 export async function syncYouTubeChannel(options: { maxResults?: number } = {}) {
   const apiKey = process.env.YOUTUBE_API_KEY;
+  const channelId = process.env.YOUTUBE_CHANNEL_ID || "UCij5b5F7FxChHGPVoVgREmQ";
   const uploadsPlaylistId =
     process.env.YOUTUBE_UPLOADS_PLAYLIST_ID ||
-    (process.env.YOUTUBE_CHANNEL_ID
-      ? process.env.YOUTUBE_CHANNEL_ID.replace(/^UC/, "UU")
-      : "UUij5b5F7FxChHGPVoVgREmQ");
+    (channelId.replace(/^UC/, "UU"));
 
   if (!apiKey) {
     throw new Error("YOUTUBE_API_KEY environment variable is not configured");
   }
 
-  const maxResults = options.maxResults || 30;
+  const maxResults = options.maxResults || 35;
   console.log(`[YouTube Sync] Starting channel sync with playlist: ${uploadsPlaylistId}`);
   const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${apiKey}`;
 
@@ -111,7 +218,7 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
   const data = await res.json();
   const items = data.items || [];
   if (items.length === 0) {
-    return { success: true, addedCount: 0, updatedCount: 0, addedVideos: [] };
+    return { success: true, addedCount: 0, updatedCount: 0, playlistsSynced: 0, addedVideos: [] };
   }
 
   // Connect to DB and fetch existing videos
@@ -136,7 +243,6 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
   for (const item of items) {
     const vId = item.contentDetails?.videoId;
     if (!vId) continue;
-    // Skip SacWac Live stream or non-lesson live streams if needed, or include them
     if (existingMap.has(vId)) {
       existingVideoIdsToRefresh.push(vId);
     } else {
@@ -220,29 +326,6 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
         saveStoredVideos([newVideo, ...currentLocals]);
       }
 
-      if (details.playlistId) {
-        const storedPls = getStoredPlaylists();
-        const updatedPls = storedPls.map((p) => {
-          if (p.id === details.playlistId) {
-            const currentIds = p.videoIds || [];
-            const updatedIds = currentIds.includes(vId) ? currentIds : [...currentIds, vId];
-            return {
-              ...p,
-              videoIds: updatedIds,
-              totalEpisodes: updatedIds.length,
-              title: getDynamicPlaylistTitle({
-                id: p.id,
-                title: p.title,
-                videoIds: updatedIds,
-                totalEpisodes: updatedIds.length,
-              }),
-            };
-          }
-          return p;
-        });
-        saveStoredPlaylists(updatedPls);
-      }
-
       addedVideos.push(newVideo);
       existingMap.set(vId, newVideo);
     } catch (err) {
@@ -291,10 +374,42 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
     saveStoredVideos(Array.from(existingMap.values()));
   }
 
+  // Auto-sync ALL channel playlists from YouTube
+  let playlistsSyncedCount = 0;
+  try {
+    const channelPlaylists = await syncYouTubePlaylists(apiKey, channelId);
+    if (channelPlaylists && channelPlaylists.length > 0) {
+      // Find video ObjectIds for MongoDB linking
+      if (dbConnected) {
+        for (const pl of channelPlaylists) {
+          const matchingVideoDocs = await VideoModel.find({ youtubeId: { $in: pl.videoIds } }).lean();
+          const objIds = matchingVideoDocs.map((d) => d._id);
+
+          await PlaylistModel.findOneAndUpdate(
+            { id: pl.id },
+            {
+              ...pl,
+              videos: objIds,
+            },
+            { upsert: true, returnDocument: "after" }
+          );
+        }
+      }
+
+      // Persist to local playlists.json
+      saveStoredPlaylists(channelPlaylists);
+      playlistsSyncedCount = channelPlaylists.length;
+      console.log(`[YouTube Sync] Synced ${playlistsSyncedCount} playlists successfully!`);
+    }
+  } catch (plErr) {
+    console.error("Error syncing YouTube playlists:", plErr);
+  }
+
   return {
     success: true,
     addedCount: addedVideos.length,
     updatedCount,
+    playlistsSynced: playlistsSyncedCount,
     addedVideos,
   };
 }

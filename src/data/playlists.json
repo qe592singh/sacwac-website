@@ -1,13 +1,81 @@
 [
   {
+    "id": "playlist-flows",
+    "title": "Salesforce Flow Builder Complete Course (Episodes 1 - 11)",
+    "slug": "flows",
+    "description": "Complete Salesforce Flow | Beginners to Advanced | Full Hands on Practical Course | Flow Builder, Automation & Basics | 2026 course playlist by Sachin Singh on SacWac.",
+    "category": "Flows",
+    "level": "Beginner to Advanced",
+    "totalEpisodes": 11,
+    "thumbnail": "https://i.ytimg.com/vi/zuc9mfc0S6M/hqdefault.jpg",
+    "videoIds": [
+      "zuc9mfc0S6M",
+      "6o19gI0M6b8",
+      "oAhDClOLIgg",
+      "zBkFo5DoIps",
+      "71QDQnVwZR8",
+      "y7DvhSYerTI",
+      "WKTXDO7Di7Y",
+      "cVuaIh2Wye8",
+      "-vqXBSxMIBo",
+      "Co__nyS5U9w",
+      "mX5yS30uuY0"
+    ],
+    "videos": [
+      "6af30aa12561d5f6dd24908b",
+      "6af30aa22561d5f6dd249092",
+      "6af30aa22561d5f6dd24908f",
+      "6af73298a9c76d807495a3b6",
+      "6af30aa12561d5f6dd24908d",
+      "6af30aa12561d5f6dd24908c",
+      "6af94d412561d5f6dd26b8dd",
+      "6af30aa22561d5f6dd249091",
+      "6af30aa12561d5f6dd24908e",
+      "6af30aa22561d5f6dd249090",
+      "6af30aa22561d5f6dd249093"
+    ]
+  },
+  {
+    "id": "playlist-security",
+    "title": "Salesforce Security Architecture Masterclass (9 Lessons)",
+    "slug": "security",
+    "description": "Welcome to the Salesforce Security from Start to End playlist! 🚀\n\nIn this complete series, we’ll learn how Salesforce security works from the fundamentals all the way to advanced security concepts, with practical examples and real-world scenarios.\n\nWe’ll cover topics including:\n\n🔐 Salesforce Security Model\n👤 Profiles & Permission Sets\n🏢 Organization-Wide Defaults (OWD)\n📂 Role Hierarchy\n🤝 Sharing Rules\n👥 Manual Sharing & Teams\n⚡ Apex Managed Sharing\n🛡️ Field-Level Security (FLS)\n📋 Object & Record-Level Security\n🔑 Permission Set Groups\n🚫 Restriction Rules\n🔒 Login & Session Security\n🌐 Network Access & Trusted IPs\n🧩 Sharing Settings & Access Levels\n💻 Apex Security and with sharing\n🛠️ Security in Flows and Automation\n🔍 Debugging & Troubleshooting Record Access\n🎯 Real-world Security Scenarios\n🏆 Best Practices for Designing a Secure Salesforce Org\n\nWhether you're a Salesforce Admin, Developer, Consultant, Architect, or someone preparing for Salesforce certifications, this playlist is designed to build your understanding step by step.\n\nBy the end of this series, you should be able to confidently answer one of the most important Salesforce questions:\n\n“Why can this user see or not see this record?” 🔥\n\n📌 Subscribe and follow the complete playlist as we go from Salesforce Security Basics → Intermediate → Advanced → Real-World Scenarios.\n\n#Salesforce #SalesforceSecurity #SalesforceAdmin #SalesforceDeveloper #SalesforceTutorial #SalesforceCertification #CRM #SalesforceArchitecture",
+    "category": "Security",
+    "level": "Intermediate to Advanced",
+    "totalEpisodes": 9,
+    "thumbnail": "https://i.ytimg.com/vi/tTPzYNNsx7I/hqdefault.jpg",
+    "videoIds": [
+      "tTPzYNNsx7I",
+      "iyF1TCcZCAs",
+      "vwTB5lGFyXA",
+      "aHI3xuQ1zvA",
+      "BE--_ReJ-ls",
+      "pLyUN9txmac",
+      "jKVtlW5AFvc",
+      "L-5WkMPmIaE",
+      "YR9A4vW7gfA"
+    ],
+    "videos": [
+      "6af30aa22561d5f6dd249098",
+      "6af30aa22561d5f6dd249095",
+      "6af30aa22561d5f6dd249094",
+      "6af30aa22561d5f6dd249099",
+      "6af30aa22561d5f6dd24909c",
+      "6af30aa22561d5f6dd249096",
+      "6af30aa22561d5f6dd249097",
+      "6af30aa22561d5f6dd24909d",
+      "6af30aa22561d5f6dd24909b"
+    ]
+  },
+  {
     "id": "playlist-admin",
-    "title": "Salesforce Administrator Complete Course (43 Lessons)",
-    "slug": "salesforce-admin-complete-course",
-    "description": "The complete end-to-end Salesforce Administrator masterclass: Objects, Fields, Developer Org Setup, Picklists, Formulas, Layouts, Dynamic Forms, Relationships, Validation Rules, Lead & Case Management, Salesforce Inspector, Automation, Reports & Dashboards, and Complete Security Architecture with MFA Authenticator.",
+    "title": "Salesforce Administrator Complete Course (54 Lessons)",
+    "slug": "admin",
+    "description": "🚀 Welcome to the Complete Salesforce Administrator Course (2026 Edition)!\n\nIf you're looking to learn Salesforce from scratch, you're in the right place. This course is designed for **absolute beginners** as well as professionals who want to build a strong foundation in Salesforce Administration.\n\nIn this course, you'll learn everything step by step with easy-to-understand explanations, real-world examples, and hands-on practical demonstrations inside a Salesforce Developer Org.\n\n## 📚 What You'll Learn\n\n✅ What is CRM & Why Salesforce CRM\n✅ Salesforce Architecture & Navigation\n✅ Standard & Custom Objects\n✅ Fields & Field Data Types\n✅ Records & Data Management\n✅ Tabs & Apps\n✅ Page Layouts & Record Types\n✅ Relationships (Lookup & Master-Detail)\n✅ Validation Rules & Formula Fields\n✅ Security (Profiles, Roles, Permission Sets & Sharing)\n✅ Reports & Dashboards\n✅ Flow Builder & Business Automation\n✅ Approval Processes\n✅ Data Import & Data Loader\n✅ Best Practices & Real-World Scenarios\n✅ Salesforce Administrator Certification Preparation\n\n🎯 By the end of this course, you'll be able to confidently work as a Salesforce Administrator, build business solutions, and prepare for Salesforce Admin interviews and certification.\n\nWhether you're a student, job seeker, developer, administrator, or someone switching careers, this course will help you learn Salesforce from the ground up.\n\n📌 **Course Playlist:** Add your complete playlist link here.\n\n👍 If you enjoy the course, don't forget to Like, Share, and Subscribe to support the channel and stay updated with upcoming lessons.\n\nHappy Learning! 🚀",
     "category": "Admin",
     "level": "Beginner to Advanced",
-    "totalEpisodes": 43,
-    "thumbnail": "https://img.youtube.com/vi/MVtFaHgvXnU/hqdefault.jpg",
+    "totalEpisodes": 54,
+    "thumbnail": "https://i.ytimg.com/vi/Ej1n9Wve69Q/hqdefault.jpg",
     "videoIds": [
       "Ej1n9Wve69Q",
       "MVtFaHgvXnU",
@@ -51,19 +119,7 @@
       "pLyUN9txmac",
       "jKVtlW5AFvc",
       "L-5WkMPmIaE",
-      "YR9A4vW7gfA"
-    ]
-  },
-  {
-    "id": "playlist-flows",
-    "title": "Salesforce Flow Builder Complete Course (Episodes 1 - 11)",
-    "slug": "salesforce-flows-complete-course",
-    "description": "Master Salesforce Flow Builder from the ground up: Before-Save vs After-Save, Screen Flows, Autolaunched, and Schedule-Triggered Flows with real business scenarios.",
-    "category": "Flows",
-    "level": "Beginner to Advanced",
-    "totalEpisodes": 11,
-    "thumbnail": "https://img.youtube.com/vi/zuc9mfc0S6M/hqdefault.jpg",
-    "videoIds": [
+      "YR9A4vW7gfA",
       "zuc9mfc0S6M",
       "6o19gI0M6b8",
       "oAhDClOLIgg",
@@ -75,28 +131,168 @@
       "-vqXBSxMIBo",
       "Co__nyS5U9w",
       "mX5yS30uuY0"
+    ],
+    "videos": [
+      "6af30aa22561d5f6dd24909a",
+      "6af30aa12561d5f6dd24908b",
+      "6af30aa22561d5f6dd2490a2",
+      "6af30aa32561d5f6dd2490b0",
+      "6af30aa22561d5f6dd249092",
+      "6af30aa22561d5f6dd24908f",
+      "6af30aa32561d5f6dd2490bc",
+      "6af30aa22561d5f6dd2490aa",
+      "6af30aa22561d5f6dd2490a8",
+      "6af30aa22561d5f6dd249098",
+      "6af73298a9c76d807495a3b6",
+      "6af30aa32561d5f6dd2490be",
+      "6af30aa32561d5f6dd2490ae",
+      "6af30aa22561d5f6dd2490a4",
+      "6af30aa22561d5f6dd249095",
+      "6af30aa32561d5f6dd2490bd",
+      "6af30aa22561d5f6dd24909e",
+      "6af30aa32561d5f6dd2490b8",
+      "6af30aa32561d5f6dd2490b3",
+      "6af30aa32561d5f6dd2490b7",
+      "6af30aa32561d5f6dd2490ba",
+      "6af30aa12561d5f6dd24908d",
+      "6af30aa22561d5f6dd2490a3",
+      "6af30aa22561d5f6dd249094",
+      "6af30aa22561d5f6dd2490a5",
+      "6af30aa32561d5f6dd2490b6",
+      "6af30aa32561d5f6dd2490b2",
+      "6af30aa22561d5f6dd2490a1",
+      "6af30aa22561d5f6dd249099",
+      "6af30aa32561d5f6dd2490b1",
+      "6af30aa12561d5f6dd24908c",
+      "6af30aa22561d5f6dd2490a0",
+      "6af30aa22561d5f6dd2490ab",
+      "6af30aa22561d5f6dd24909c",
+      "6af30aa22561d5f6dd249096",
+      "6af94d412561d5f6dd26b8dd",
+      "6af30aa32561d5f6dd2490b4",
+      "6af30aa32561d5f6dd2490af",
+      "6af30aa22561d5f6dd249091",
+      "6af30aa32561d5f6dd2490bb",
+      "6af30aa22561d5f6dd2490a6",
+      "6af30aa22561d5f6dd249097",
+      "6af30aa22561d5f6dd2490a7",
+      "6af30aa22561d5f6dd24909d",
+      "6af30aa22561d5f6dd24909f",
+      "6af30aa32561d5f6dd2490b5",
+      "6af30aa32561d5f6dd2490b9",
+      "6af30aa32561d5f6dd2490ad",
+      "6af30aa22561d5f6dd24909b",
+      "6af30aa22561d5f6dd2490ac",
+      "6af30aa12561d5f6dd24908e",
+      "6af30aa22561d5f6dd249090",
+      "6af30aa22561d5f6dd2490a9",
+      "6af30aa22561d5f6dd249093"
     ]
   },
   {
-    "id": "playlist-security",
-    "title": "Salesforce Security Architecture Masterclass (10 Lessons)",
-    "slug": "salesforce-security-architecture",
-    "description": "Comprehensive enterprise security masterclass: Multi-layered security, Org-Level, MFA, Salesforce Authenticator Setup, Profiles, Permission Sets, Object (CRUD), Field (FLS), Record (OWD, Role Hierarchy), and Restriction Rules.",
-    "category": "Security",
+    "id": "playlist-top-apex-interview-questions-series",
+    "title": "Top Apex Interview Questions Series (3 Lessons)",
+    "slug": "top-apex-interview-questions-series",
+    "description": "This series is perfect for:\n✔ Salesforce Developers\n✔ Freshers preparing for interviews\n✔ Experienced developers revising Apex concepts\n✔ Anyone wanting to improve problem-solving skills in Salesforce\n\nIf you want to crack Salesforce developer interviews and improve your Apex coding skills, this series will help you understand both logic building and optimization techniques.\n\n🔥 Don’t forget to Like, Share & Subscribe for more Salesforce and Apex interview content!",
+    "category": "Apex",
     "level": "Intermediate to Advanced",
-    "totalEpisodes": 10,
-    "thumbnail": "https://img.youtube.com/vi/tTPzYNNsx7I/hqdefault.jpg",
+    "totalEpisodes": 3,
+    "thumbnail": "https://i.ytimg.com/vi/s5x5ZNptIjY/hqdefault.jpg",
     "videoIds": [
-      "tTPzYNNsx7I",
-      "iyF1TCcZCAs",
-      "vwTB5lGFyXA",
-      "-lwz_VpW-vM",
-      "aHI3xuQ1zvA",
-      "BE--_ReJ-ls",
-      "pLyUN9txmac",
-      "jKVtlW5AFvc",
-      "L-5WkMPmIaE",
-      "YR9A4vW7gfA"
+      "s5x5ZNptIjY",
+      "Z8sEbyEw7Bs",
+      "EGV9eiWyBMg"
+    ],
+    "videos": [
+      "6af30aa32561d5f6dd2490c3",
+      "6af30aa32561d5f6dd2490c4",
+      "6af30aa32561d5f6dd2490c5"
+    ]
+  },
+  {
+    "id": "playlist-superbadge-apex-callouts-all-challenges",
+    "title": "Superbadge: Apex Callouts | All Challenges (4 Lessons)",
+    "slug": "superbadge-apex-callouts-all-challenges",
+    "description": "Complete Superbadge: Apex Callouts | All Challenges course playlist by Sachin Singh on SacWac.",
+    "category": "Apex",
+    "level": "Intermediate to Advanced",
+    "totalEpisodes": 4,
+    "thumbnail": "https://i.ytimg.com/vi/5JFby0QNuL0/hqdefault.jpg",
+    "videoIds": [
+      "5JFby0QNuL0",
+      "Zia35g_350M",
+      "gJwEKz1sHq0",
+      "R8IXqoi06rY"
+    ],
+    "videos": [
+      "6af30aa32561d5f6dd2490ca",
+      "6af30aa32561d5f6dd2490c7",
+      "6af30aa32561d5f6dd2490c9",
+      "6af30aa32561d5f6dd2490c8"
+    ]
+  },
+  {
+    "id": "playlist-managed-packages-in-salesforce",
+    "title": "Managed Packages In Salesforce (3 Lessons)",
+    "slug": "managed-packages-in-salesforce",
+    "description": "How to create 1GP Managed Package\nHow to create 2GP Managed Package\nConvert 1GP to 2GP",
+    "category": "Integration",
+    "level": "Advanced",
+    "totalEpisodes": 3,
+    "thumbnail": "https://i.ytimg.com/vi/n0gMotv7-lI/hqdefault.jpg",
+    "videoIds": [
+      "n0gMotv7-lI",
+      "hfYONUPN8LE",
+      "lN2h5eXjMJE"
+    ],
+    "videos": [
+      "6af30aa32561d5f6dd2490cc",
+      "6af30aa32561d5f6dd2490c6",
+      "6af30aa32561d5f6dd2490cb"
+    ]
+  },
+  {
+    "id": "playlist-salesforce-integration",
+    "title": "Salesforce Integration (6 Lessons)",
+    "slug": "salesforce-integration",
+    "description": "Complete Salesforce Integration course playlist by Sachin Singh on SacWac.",
+    "category": "Integration",
+    "level": "Advanced",
+    "totalEpisodes": 6,
+    "thumbnail": "https://i.ytimg.com/vi/VtKqH99YulY/hqdefault.jpg",
+    "videoIds": [
+      "VtKqH99YulY",
+      "DviOshdlw0s",
+      "3VgGWgTc2zM",
+      "ltmbhGUY8wo",
+      "hfYONUPN8LE",
+      "n0gMotv7-lI"
+    ],
+    "videos": [
+      "6af30aa42561d5f6dd2490d1",
+      "6af30aa42561d5f6dd2490ce",
+      "6af30aa42561d5f6dd2490cf",
+      "6af30aa32561d5f6dd2490cc",
+      "6af30aa42561d5f6dd2490d0",
+      "6af30aa32561d5f6dd2490cb"
+    ]
+  },
+  {
+    "id": "playlist-external-client-app",
+    "title": "External Client App (2 Lessons)",
+    "slug": "external-client-app",
+    "description": "Complete External Client App course playlist by Sachin Singh on SacWac.",
+    "category": "Integration",
+    "level": "Advanced",
+    "totalEpisodes": 2,
+    "thumbnail": "https://i.ytimg.com/vi/ltmbhGUY8wo/hqdefault.jpg",
+    "videoIds": [
+      "ltmbhGUY8wo",
+      "3VgGWgTc2zM"
+    ],
+    "videos": [
+      "6af30aa42561d5f6dd2490d1",
+      "6af30aa42561d5f6dd2490d0"
     ]
   }
 ]

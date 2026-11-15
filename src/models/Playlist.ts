@@ -5,7 +5,7 @@ export interface IPlaylist extends Document {
   title: string;
   slug: string;
   description: string;
-  category: "Flows" | "Security" | "Admin" | "General";
+  category: "Flows" | "Security" | "Admin" | "Apex" | "Integration" | "General";
   level: string;
   totalEpisodes: number;
   thumbnail: string;
@@ -21,7 +21,7 @@ const PlaylistSchema: Schema<IPlaylist> = new Schema(
     description: { type: String, default: "" },
     category: {
       type: String,
-      enum: ["Flows", "Security", "Admin", "General"],
+      enum: ["Flows", "Security", "Admin", "Apex", "Integration", "General"],
       default: "Admin",
     },
     level: { type: String, default: "Beginner to Advanced" },

@@ -513,9 +513,10 @@ export default function AdminPage() {
       }
       const newVids = data.addedCount || 0;
       const updatedVids = data.updatedCount || 0;
+      const plsSynced = data.playlistsSynced || 0;
       setSyncStatusMsg({
         type: "success",
-        text: `Sync complete! ${newVids} new video(s) added, ${updatedVids} view count(s) refreshed.`,
+        text: `Sync complete! ${newVids} new video(s) added, ${plsSynced} playlist(s) synchronized, ${updatedVids} view count(s) refreshed.`,
       });
       fetchData();
     } catch (err: unknown) {
