@@ -158,6 +158,8 @@ export default function AdminPage() {
 
   // Add Video Modal State
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
+  const [isSyncingYoutube, setIsSyncingYoutube] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [extractedVidId, setExtractedVidId] = useState<string | null>(null);
   const [videoTitle, setVideoTitle] = useState("");
@@ -496,6 +498,31 @@ export default function AdminPage() {
       }
     } finally {
       setVideoSubmitting(false);
+    }
+  };
+
+  // One-Click YouTube Channel Synchronizer
+  const handleSyncYouTube = async () => {
+    setIsSyncingYoutube(true);
+    setSyncStatusMsg(null);
+    try {
+      const res = await fetch("/api/youtube/sync", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Sync failed");
+      }
+      const newVids = data.addedCount || 0;
+      const updatedVids = data.updatedCount || 0;
+      setSyncStatusMsg({
+        type: "success",
+        text: `Sync complete! ${newVids} new video(s) added, ${updatedVids} view count(s) refreshed.`,
+      });
+      fetchData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Sync failed";
+      setSyncStatusMsg({ type: "error", text: msg });
+    } finally {
+      setIsSyncingYoutube(false);
     }
   };
 
@@ -1221,7 +1248,16 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <button
+                    onClick={handleSyncYouTube}
+                    disabled={isSyncingYoutube}
+                    className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50"
+                    title="Automatically sync new uploads & views directly from YouTube Channel"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncingYoutube ? "animate-spin" : ""}`} />
+                    <span>{isSyncingYoutube ? "Syncing Channel..." : "Sync YouTube Channel"}</span>
+                  </button>
                   <button
                     onClick={() => setIsAddVideoModalOpen(true)}
                     className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
@@ -1234,6 +1270,32 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Sync Status Banner */}
+              {syncStatusMsg && (
+                <div
+                  className={`p-3 rounded-xl text-xs font-medium flex items-center justify-between gap-2 transition-all ${
+                    syncStatusMsg.type === "success"
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                      : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {syncStatusMsg.type === "success" ? (
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                    )}
+                    <span>{syncStatusMsg.text}</span>
+                  </div>
+                  <button
+                    onClick={() => setSyncStatusMsg(null)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
               {/* Quick Filter & Search Bar */}
               <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-1 pb-1">

@@ -27,6 +27,20 @@ function formatDuration(lengthSeconds: number): string {
   return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 }
 
+function parseIsoDuration(iso?: string): string {
+  if (!iso || !iso.startsWith("PT")) return "15:00";
+  const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+  const matches = iso.match(regex);
+  if (!matches) return "15:00";
+  const hours = parseInt(matches[1] || "0", 10);
+  const minutes = parseInt(matches[2] || "0", 10);
+  const seconds = parseInt(matches[3] || "0", 10);
+  if (hours > 0) {
+    return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  }
+  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+}
+
 function detectCategory(title: string, desc: string, tags: string[] = []): string {
   const combined = `${title} ${desc} ${tags.join(" ")}`.toLowerCase();
   if (/flow|screen flow|record-triggered|schedule-triggered|autolaunched/.test(combined)) return "Flows";
@@ -154,6 +168,48 @@ export async function GET(request: Request) {
     } else {
       const match = cleaned.match(/([a-zA-Z0-9_-]{11})/);
       id = match ? match[1] : cleaned;
+    }
+  }
+
+  // Strategy 0: Official YouTube Data API v3 (Instant & 100% accurate)
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (apiKey) {
+    try {
+      const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${id}&key=${apiKey}`;
+      const apiRes = await fetch(apiUrl, { signal: AbortSignal.timeout(5000) });
+      if (apiRes.ok) {
+        const apiData = await apiRes.json();
+        const item = apiData.items?.[0];
+        if (item && item.snippet) {
+          const cleanTitle = decodeHtmlEntities(item.snippet.title || "");
+          const cleanDesc = item.snippet.description || "";
+          const tags = Array.isArray(item.snippet.tags) ? item.snippet.tags : [];
+          const durationStr = parseIsoDuration(item.contentDetails?.duration);
+          const viewCount = parseInt(item.statistics?.viewCount || "0", 10);
+          const ep = extractEpisodeNumber(cleanTitle);
+          const category = detectCategory(cleanTitle, cleanDesc, tags);
+
+          return NextResponse.json(
+            {
+              success: true,
+              id,
+              title: cleanTitle,
+              description: cleanDesc,
+              duration: durationStr,
+              views: viewCount,
+              viewsText: `${viewCount.toLocaleString()} views`,
+              thumbnailUrl: getYoutubeThumbnail(id),
+              episode: ep,
+              suggestedCategory: category,
+              tags,
+              source: "youtube_data_api_v3",
+            },
+            { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+          );
+        }
+      }
+    } catch (err) {
+      console.warn("YouTube Data API v3 failed, falling back to scrapers:", err);
     }
   }
 
