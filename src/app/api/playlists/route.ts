@@ -4,7 +4,7 @@ import { PlaylistModel } from "@/models/Playlist";
 import { VideoModel } from "@/models/Video";
 import { getStoredPlaylists, saveStoredPlaylists, getStoredVideos } from "@/lib/storage";
 import { getDynamicPlaylistTitle } from "@/lib/formatters";
-import { Playlist } from "@/types";
+import { Playlist, Video } from "@/types";
 
 let cachedPlaylistsData: { data: unknown; time: number } | null = null;
 const CACHE_TTL_MS = 30 * 1000;
@@ -20,24 +20,28 @@ export async function GET() {
 
   try {
     await connectToDatabase();
-    const dbPlaylists = await PlaylistModel.find()
-      .populate({
-        path: "videos",
-        model: VideoModel,
-      })
-      .lean();
+    const [dbPlaylists, allDbVideos] = await Promise.all([
+      PlaylistModel.find().lean(),
+      VideoModel.find().lean(),
+    ]);
+
+    const videoMap = new Map<string, Video>();
+    allDbVideos.forEach((v) => videoMap.set(v.youtubeId, v as unknown as Video));
 
     if (dbPlaylists && dbPlaylists.length > 0) {
-      // Ensure each playlist's videos array is mapped properly and title is dynamic
       const formatted = dbPlaylists.map((p) => {
-        const episodeCount = (p.videoIds && p.videoIds.length) || (p.videos ? p.videos.length : 0) || p.totalEpisodes || 0;
+        const resolvedVideos: Video[] = (p.videoIds || [])
+          .map((id) => videoMap.get(id))
+          .filter((v): v is Video => !!v);
+
+        const episodeCount = (p.videoIds && p.videoIds.length) || resolvedVideos.length || p.totalEpisodes || 0;
         return {
           id: p.id,
           title: getDynamicPlaylistTitle({
             id: p.id,
             title: p.title,
             videoIds: p.videoIds || [],
-            videos: p.videos || [],
+            videos: resolvedVideos,
             totalEpisodes: episodeCount,
           }),
           slug: p.slug,
@@ -47,14 +51,14 @@ export async function GET() {
           totalEpisodes: episodeCount,
           thumbnail: p.thumbnail,
           videoIds: p.videoIds || [],
-          videos: p.videos || [],
+          videos: resolvedVideos,
         };
       });
       const payload = { success: true, playlists: formatted, source: "mongodb" };
       cachedPlaylistsData = { data: payload, time: Date.now() };
       return NextResponse.json(payload, {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
         },
       });
     }

@@ -307,7 +307,7 @@ export default function VideosPage() {
                         {/* YouTube-style metadata: views and upload date */}
                         <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                           <span className="text-sky-600 dark:text-sky-400 font-semibold">
-                            {vid.viewsText || "1.2K views"}
+                            {(vid.viewsText && vid.viewsText.trim()) || (typeof vid.views === "number" ? `${vid.views.toLocaleString()} views` : "0 views")}
                           </span>
                           <span>•</span>
                           <span>{vid.date}</span>

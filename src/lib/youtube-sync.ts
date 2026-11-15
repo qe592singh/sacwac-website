@@ -34,14 +34,14 @@ export function detectCategory(title: string, desc: string = "", tags: string[] 
   if (/scenario|interview/.test(combined)) return "Scenarios";
   if (/integration|rest api|named credential|client credential/.test(combined)) return "Integration";
   if (/admin|object|field|page layout|app builder/.test(combined)) return "Admin";
-  return "Flows";
+  return "General";
 }
 
 export function detectPlaylistId(category: Video["category"], title: string): string | undefined {
   const lower = title.toLowerCase();
-  if (category === "Flows" || lower.includes("flow")) return "playlist-flows";
-  if (category === "Security" || lower.includes("security") || lower.includes("mfa")) return "playlist-security";
-  if (category === "Admin" || lower.includes("admin")) return "playlist-admin";
+  if (category === "Flows" && /flow|element|trigger|screen|schedule|autolaunch/.test(lower)) return "playlist-flows";
+  if (category === "Security" && /security|mfa|permission|profile|owd|authenticator/.test(lower)) return "playlist-security";
+  if (category === "Admin" && /admin|lesson|course/.test(lower)) return "playlist-admin";
   return undefined;
 }
 
@@ -194,16 +194,18 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
                   videoIds: updatedIds,
                   totalEpisodes: updatedIds.length,
                 });
-                await PlaylistModel.updateOne(
-                  { id: details.playlistId },
-                  {
-                    $addToSet: { videoIds: vId },
-                    $set: {
-                      title: updatedTitle,
-                      totalEpisodes: updatedIds.length,
-                    },
-                  }
-                );
+                const savedDoc = await VideoModel.findOne({ youtubeId: vId }).lean();
+                const updateOp: Record<string, unknown> = {
+                  $addToSet: { videoIds: vId } as Record<string, unknown>,
+                  $set: {
+                    title: updatedTitle,
+                    totalEpisodes: updatedIds.length,
+                  },
+                };
+                if (savedDoc && savedDoc._id) {
+                  (updateOp.$addToSet as Record<string, unknown>).videos = savedDoc._id;
+                }
+                await PlaylistModel.updateOne({ id: details.playlistId }, updateOp);
               }
             }
           }
@@ -248,43 +250,45 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
     }
   }
 
-  // Refresh view counts for existing videos (batch in chunks of 50)
+  // Refresh view counts for ALL existing videos in chunks of 50
   let updatedCount = 0;
   if (existingVideoIdsToRefresh.length > 0) {
-    const batch = existingVideoIdsToRefresh.slice(0, 50);
-    try {
-      const batchUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch.join(",")}&key=${apiKey}`;
-      const batchRes = await fetch(batchUrl, { signal: AbortSignal.timeout(8000) });
-      if (batchRes.ok) {
-        const batchData = await batchRes.json();
-        const statsItems = batchData.items || [];
+    for (let i = 0; i < existingVideoIdsToRefresh.length; i += 50) {
+      const batch = existingVideoIdsToRefresh.slice(i, i + 50);
+      try {
+        const batchUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch.join(",")}&key=${apiKey}`;
+        const batchRes = await fetch(batchUrl, { signal: AbortSignal.timeout(8000) });
+        if (batchRes.ok) {
+          const batchData = await batchRes.json();
+          const statsItems = batchData.items || [];
 
-        for (const s of statsItems) {
-          const vid = s.id;
-          const count = parseInt(s.statistics?.viewCount || "0", 10);
-          const text = `${count.toLocaleString()} views`;
+          for (const s of statsItems) {
+            const vid = s.id;
+            const count = parseInt(s.statistics?.viewCount || "0", 10);
+            const text = `${count.toLocaleString()} views`;
 
-          if (dbConnected) {
-            await VideoModel.updateOne(
-              { youtubeId: vid },
-              { $set: { views: count, viewsText: text } }
-            );
-          }
+            if (dbConnected) {
+              await VideoModel.updateOne(
+                { youtubeId: vid },
+                { $set: { views: count, viewsText: text } }
+              );
+            }
 
-          const existingLocal = existingMap.get(vid);
-          if (existingLocal) {
-            existingLocal.views = count;
-            existingLocal.viewsText = text;
-            updatedCount++;
+            const existingLocal = existingMap.get(vid);
+            if (existingLocal) {
+              existingLocal.views = count;
+              existingLocal.viewsText = text;
+              updatedCount++;
+            }
           }
         }
-
-        // Persist refreshed local videos
-        saveStoredVideos(Array.from(existingMap.values()));
+      } catch (err) {
+        console.warn("Failed to refresh batch statistics:", err);
       }
-    } catch (err) {
-      console.warn("Failed to refresh batch statistics:", err);
     }
+
+    // Persist refreshed local videos
+    saveStoredVideos(Array.from(existingMap.values()));
   }
 
   return {

@@ -16,13 +16,13 @@ import { formatVideoDate, getDynamicPlaylistTitle } from "@/lib/formatters";
 import { Video, NoteDoc } from "@/types";
 
 let cachedVideosData: { data: unknown; time: number } | null = null;
-const CACHE_TTL_MS = 30 * 1000;
+const CACHE_TTL_MS = 5 * 1000;
 
 export async function GET() {
   if (cachedVideosData && Date.now() - cachedVideosData.time < CACHE_TTL_MS) {
     return NextResponse.json(cachedVideosData.data, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        "Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
       },
     });
   }
@@ -46,7 +46,7 @@ export async function GET() {
       cachedVideosData = { data: payload, time: Date.now() };
       return NextResponse.json(payload, {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
         },
       });
     }
@@ -64,7 +64,7 @@ export async function GET() {
   cachedVideosData = { data: localPayload, time: Date.now() };
   return NextResponse.json(localPayload, {
     headers: {
-      "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+      "Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
     },
   });
 }
