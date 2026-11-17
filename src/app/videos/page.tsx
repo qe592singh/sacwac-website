@@ -28,7 +28,12 @@ export default function VideosPage() {
       fetch("/api/playlists").then((r) => r.json()),
     ])
       .then(([vData, pData]) => {
-        if (vData.success && vData.videos) setVideos(vData.videos);
+        if (vData.success && vData.videos) {
+          const nonLive = vData.videos.filter(
+            (v: Video) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+          );
+          setVideos(nonLive);
+        }
         if (pData.success && pData.playlists) setPlaylists(pData.playlists);
       })
       .catch((err) => console.error("Error loading videos:", err))

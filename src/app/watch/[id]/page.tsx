@@ -61,7 +61,9 @@ function WatchContent() {
         }
 
         if (vData.success && vData.videos) {
-          allVids = vData.videos;
+          allVids = vData.videos.filter(
+            (v: Video) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+          );
           setVideos(allVids);
 
           const found = allVids.find(

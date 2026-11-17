@@ -308,7 +308,12 @@ export default function AdminPage() {
         fetch("/api/donations/settings").then((r) => r.json()).catch(() => ({ success: false })),
       ]);
 
-      if (vRes.success) setVideos(vRes.videos);
+      if (vRes.success) {
+        const nonLive = vRes.videos.filter(
+          (v: Video) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+        );
+        setVideos(nonLive);
+      }
       if (pRes.success) {
         setPlaylists(pRes.playlists);
         if (pRes.playlists.length > 0 && !selectedPlaylistForReorder) {

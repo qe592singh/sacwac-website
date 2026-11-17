@@ -29,9 +29,17 @@ export async function GET() {
 
   try {
     await connectToDatabase();
-    const dbVideos = await VideoModel.find().sort({ order: 1, createdAt: -1 }).lean();
+    const dbVideos = await VideoModel.find({
+      $and: [
+        { title: { $not: /live\s*stream/i } },
+        { title: { $not: /^sacwac\s*live/i } },
+      ],
+    }).sort({ order: 1, createdAt: -1 }).lean();
     if (dbVideos && dbVideos.length > 0) {
-      const normalized = dbVideos.map((v) => ({
+      const nonLive = dbVideos.filter(
+        (v) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+      );
+      const normalized = nonLive.map((v) => ({
         ...v,
         date: formatVideoDate(v.date || v.publishedAt || (v as unknown as { createdAt?: string }).createdAt),
         publishedAt:
@@ -54,7 +62,9 @@ export async function GET() {
     console.error("MongoDB GET videos error, falling back to JSON:", err);
   }
 
-  const videos = getStoredVideos();
+  const videos = getStoredVideos().filter(
+    (v) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+  );
   const normalized = videos.map((v) => ({
     ...v,
     date: formatVideoDate(v.date || v.publishedAt),

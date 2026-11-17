@@ -38,7 +38,10 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.videos) {
-          setVideos(data.videos);
+          const nonLive = data.videos.filter(
+            (v: Video) => !/live\s*stream|livestream|^sacwac\s*live/i.test(v.title || "")
+          );
+          setVideos(nonLive);
         }
       })
       .catch((err) => console.error("Error loading videos:", err));

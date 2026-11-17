@@ -44,6 +44,14 @@ export function detectPlaylistId(category: Video["category"], title: string): st
   return undefined;
 }
 
+export function isLiveStream(title: string, desc: string = ""): boolean {
+  const text = `${title} ${desc}`.toLowerCase();
+  return (
+    /live\s*stream|livestream|\blive\s*session|\blive\b.*stream/i.test(text) ||
+    title.toLowerCase().startsWith("sacwac live")
+  );
+}
+
 export function extractEpisodeNumber(text: string): number | undefined {
   const match = text.match(/(?:Episode|Ep\.?|Lesson|Part|#)\s*(\d+)/i);
   return match ? parseInt(match[1], 10) : undefined;
@@ -59,6 +67,15 @@ export async function fetchVideoDetailsFromApi(videoId: string, apiKey: string) 
 
   const title = item.snippet?.title || "";
   const description = item.snippet?.description || "";
+
+  // Completely filter out live streams
+  if (item.snippet?.liveBroadcastContent && item.snippet.liveBroadcastContent !== "none") {
+    return null;
+  }
+  if (isLiveStream(title, description)) {
+    return null;
+  }
+
   const tags: string[] = item.snippet?.tags || [];
   const publishedAt = item.snippet?.publishedAt || new Date().toISOString();
   const duration = parseIsoDuration(item.contentDetails?.duration);
@@ -101,7 +118,7 @@ export async function syncYouTubePlaylists(apiKey: string, channelId: string): P
   for (const item of ytPlaylists) {
     const rawTitle = item.snippet?.title || "";
     const ytPlId = item.id;
-    if (!rawTitle || rawTitle.toLowerCase().includes("deleted video")) continue;
+    if (!rawTitle || rawTitle.toLowerCase().includes("deleted video") || isLiveStream(rawTitle)) continue;
 
     // Fetch all video IDs for this playlist with pagination
     let videoIds: string[] = [];
@@ -240,9 +257,26 @@ export async function syncYouTubeChannel(options: { maxResults?: number } = {}) 
   const newVideoIds: string[] = [];
   const existingVideoIdsToRefresh: string[] = [];
 
+  // Purge any legacy live stream videos from MongoDB if present
+  if (dbConnected) {
+    try {
+      await VideoModel.deleteMany({
+        $or: [
+          { title: { $regex: /live\s*stream/i } },
+          { title: { $regex: /^sacwac\s*live/i } },
+          { youtubeId: "X5BoxFFhBVs" },
+        ],
+      });
+    } catch {
+      // ignore
+    }
+  }
+
   for (const item of items) {
     const vId = item.contentDetails?.videoId;
     if (!vId) continue;
+    const itemTitle = item.snippet?.title || "";
+    if (isLiveStream(itemTitle)) continue;
     if (existingMap.has(vId)) {
       existingVideoIdsToRefresh.push(vId);
     } else {
