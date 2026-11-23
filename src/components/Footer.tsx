@@ -102,6 +102,16 @@ export default function Footer() {
                   Contact Us
                 </Link>
               </li>
+              <li>
+                <Link href="/privacy" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -123,7 +133,18 @@ export default function Footer() {
 
         {/* Disclaimer & Copyright */}
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} SacWac by Sachin Singh. All educational rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} SacWac by Sachin Singh. All educational rights reserved.</p>
+            <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
+              <Link href="/privacy" className="hover:text-sky-600 dark:hover:text-sky-400 underline underline-offset-2 transition-colors">
+                Privacy Policy
+              </Link>
+              <span>•</span>
+              <Link href="/terms" className="hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2 transition-colors">
+                Terms of Service
+              </Link>
+            </div>
+          </div>
           <p className="max-w-xl text-center md:text-right">
             Disclaimer: Salesforce and related marks are registered trademarks of salesforce.com, inc. SacWac is an independent learning community.
           </p>
